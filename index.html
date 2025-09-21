@@ -175,12 +175,12 @@
     <h2>我的第一篇文章</h2>
     <div id="article-content">
       <p>这是我的第一篇文章。</p>
-      <img src="https://via.placeholder.com/800x400" alt="图片示例">
+      <img src="https://raw.githubusercontent.com/fuchenyouzai/youzai/main/t4.jpg" alt="图片示例">
       <audio controls>
-        <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" type="audio/mp3">
+        <source src="https://www.youtube.com/live/QWU6YANa4ew?si=kCK8i_i1Y8gVnDe6" type="audio/mp3">
       </audio>
       <video controls>
-        <source src="https://www.w3schools.com/html/movie.mp4" type="video/mp4">
+        <source src="https://www.youtube.com/live/QWU6YANa4ew?si=kCK8i_i1Y8gVnDe6" type="video/mp4">
       </video>
     </div>
   </div>
@@ -231,11 +231,11 @@
       let videoUrl = '';
       
       switch (channel) {
-        case 'live1': videoUrl = 'https://www.youtube.com/embed/video_id_1'; break;
-        case 'live2': videoUrl = 'https://www.youtube.com/embed/video_id_2'; break;
-        case 'live3': videoUrl = 'https://www.youtube.com/embed/video_id_3'; break;
-        case 'live4': videoUrl = 'https://www.youtube.com/embed/video_id_4'; break;
-        case 'live5': videoUrl = 'https://www.youtube.com/embed/video_id_5'; break;
+        case 'live1': videoUrl = 'https://www.youtube.com/live/QWU6YANa4ew?si=kCK8i_i1Y8gVnDe6'; break;
+        case 'live2': videoUrl = 'https://www.youtube.com/live/QWU6YANa4ew?si=kCK8i_i1Y8gVnDe6'; break;
+        case 'live3': videoUrl = 'https://www.youtube.com/live/QWU6YANa4ew?si=kCK8i_i1Y8gVnDe6'; break;
+        case 'live4': videoUrl = 'https://www.youtube.com/live/QWU6YANa4ew?si=kCK8i_i1Y8gVnDe6'; break;
+        case 'live5': videoUrl = 'https://www.youtube.com/live/QWU6YANa4ew?si=kCK8i_i1Y8gVnDe6'; break;
      }
 
       // 停止当前播放的直播视频
@@ -245,7 +245,7 @@
         iframe.src = ''; // 暂停视频
         iframe.src = iframeSrc; // 恢复视频
       }
-
+      
       // 加载新的视频
       player.innerHTML = `<iframe width="560" height="315" src="${videoUrl}" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>`;
     }
