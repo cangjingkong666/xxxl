@@ -16,6 +16,9 @@
       padding: 0;
       background-color: #fff;
       transition: background-color 0.5s;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
     }
 
     header {
@@ -23,6 +26,7 @@
       padding: 10px;
       color: white;
       text-align: center;
+      width: 100%;
     }
 
     nav ul {
@@ -73,6 +77,7 @@
       display: none;
     }
 
+    /* 自适应图片大小 */
     .gallery img {
       width: 100%;
       height: auto;
@@ -123,6 +128,18 @@
       padding: 10px;
       cursor: pointer;
     }
+
+    /* 调整按钮位置 */
+    #mute-button, #dark-mode-button {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      border-radius: 50%;
+      background-color: #4CAF50;
+      color: white;
+      padding: 10px;
+      cursor: pointer;
+    }
   </style>
 </head>
 <body>
@@ -158,12 +175,12 @@
     <h2>我的第一篇文章</h2>
     <div id="article-content">
       <p>这是我的第一篇文章。</p>
-      <img src="images/sample.jpg" alt="图片示例">
+      <img src="https://via.placeholder.com/800x400" alt="图片示例">
       <audio controls>
-        <source src="audio1.mp3" type="audio/mp3">
+        <source src="https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" type="audio/mp3">
       </audio>
       <video controls>
-        <source src="video1.mp4" type="video/mp4">
+        <source src="https://www.w3schools.com/html/movie.mp4" type="video/mp4">
       </video>
     </div>
   </div>
@@ -171,9 +188,9 @@
   <div id="gallery" class="page hidden">
     <h2>我的相册</h2>
     <div class="gallery">
-      <img src="images/photo1.jpg" alt="照片1" onclick="viewImage(this)">
-      <img src="images/photo2.jpg" alt="照片2" onclick="viewImage(this)">
-      <img src="images/photo3.jpg" alt="照片3" onclick="viewImage(this)">
+      <img src="https://via.placeholder.com/300x200" alt="照片1" onclick="viewImage(this)">
+      <img src="https://via.placeholder.com/300x200" alt="照片2" onclick="viewImage(this)">
+      <img src="https://via.placeholder.com/300x200" alt="照片3" onclick="viewImage(this)">
     </div>
     <div class="gallery-modal" id="gallery-modal">
       <button onclick="closeModal()">关闭</button>
@@ -203,11 +220,8 @@
 
     // 切换页面
     function switchPage(pageId) {
-      // 隐藏所有页面
       const pages = document.querySelectorAll('.page');
       pages.forEach(page => page.classList.add('hidden'));
-      
-      // 显示目标页面
       document.getElementById(pageId).classList.remove('hidden');
     }
 
@@ -222,8 +236,8 @@
         case 'live3': videoUrl = 'https://www.youtube.com/embed/video_id_3'; break;
         case 'live4': videoUrl = 'https://www.youtube.com/embed/video_id_4'; break;
         case 'live5': videoUrl = 'https://www.youtube.com/embed/video_id_5'; break;
-      }
-      
+     }
+
       // 停止当前播放的直播视频
       const iframe = document.querySelector('iframe');
       if (iframe) {
@@ -231,7 +245,7 @@
         iframe.src = ''; // 暂停视频
         iframe.src = iframeSrc; // 恢复视频
       }
-      
+
       // 加载新的视频
       player.innerHTML = `<iframe width="560" height="315" src="${videoUrl}" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>`;
     }
@@ -252,7 +266,6 @@
     // 切换夜间模式
     function toggleDarkMode() {
       document.body.classList.toggle('dark-mode');
-      // 存储夜间模式状态
       localStorage.setItem('dark-mode', document.body.classList.contains('dark-mode'));
     }
 
@@ -266,7 +279,7 @@
     // WebAPK安装逻辑
     function installPWA() {
       alert("点击安装WebAPK！");
-      // 这里可以实现WebAPK安装提示逻辑
+      // 可以实现WebAPK安装提示逻辑
     }
 
     // 图片查看功能：点击查看大图
