@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>悠哉的博客</title>
+
+  <!-- PWA Manifest -->
+  <link rel="manifest" href="data:application/json;base64,eyJtYWluIjoidXphayIsInNob3J0X25hbWUiOiJ1emF5IiwibmFtZSI6IlV6YWEgQmxvZyIsInN0YXJ0X3VybCI6Ii9pbmRleC5odG1sIiwiZGlzcGxheSI6InN0YW5kYWxvbmUsImFjdGlvbiI6ImF1dG9zY2FsbCIsImFjY291bnRfaW1hZ2UiOlt7InN0YXIiOiJpbWFnZXMvaWNvbjIucG5nIiwiY29sb3IiOiIjNDBDNkYwIn1dLCJ0aGVtZV9jb2xvciI6IiM0Q0FGMEYiLCJpY29uX3NpemVzIjoiMTkyeDE5MiJ9">
+  <meta name="theme-color" content="#4CAF50">
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #fff;
+      transition: background-color 0.5s;
+    }
+
+    header {
+      background-color: #4CAF50;
+      padding: 10px;
+      color: white;
+      text-align: center;
+    }
+
+    nav ul {
+      list-style-type: none;
+      padding: 0;
+      text-align: center;
+    }
+
+    nav ul li {
+      display: inline;
+      margin: 10px;
+    }
+
+    nav ul li a {
+      color: white;
+      text-decoration: none;
+      font-size: 18px;
+    }
+
+    button {
+      padding: 10px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #45a049;
+    }
+
+    /* 夜间模式 */
+    .dark-mode {
+      background-color: #333;
+      color: white;
+    }
+
+    /* 安装按钮样式 */
+    #install-btn {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      border-radius: 50%;
+      background-color: #4CAF50;
+      color: white;
+      padding: 10px;
+      cursor: pointer;
+      display: none;
+    }
+
+    .gallery img {
+      width: 100%;
+      height: auto;
+      cursor: pointer;
+    }
+
+    #live-list button {
+      margin: 5px;
+      padding: 10px;
+      background-color: #2196F3;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+
+    #live-list button:hover {
+      background-color: #1976D2;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    .gallery-modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.7);
+      justify-content: center;
+      align-items: center;
+    }
+
+    .gallery-modal img {
+      max-width: 90%;
+      max-height: 90%;
+    }
+
+    .gallery-modal button {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      background-color: red;
+      color: white;
+      border: none;
+      padding: 10px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 头部 -->
+  <header>
+    <h1>悠哉的博客</h1>
+    <nav>
+      <ul>
+        <li><a href="javascript:void(0);" onclick="switchPage('home')">主页</a></li>
+        <li><a href="javascript:void(0);" onclick="switchPage('article')">文章</a></li>
+        <li><a href="javascript:void(0);" onclick="switchPage('gallery')">相册</a></li>
+        <li><a href="javascript:void(0);" onclick="switchPage('guestbook')">留言板</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <!-- 主体内容 -->
+  <div id="home" class="page">
+    <h2>直播频道</h2>
+    <div id="live-list">
+      <button onclick="loadLiveStream('live1')">直播频道 1</button>
+      <button onclick="loadLiveStream('live2')">直播频道 2</button>
+      <button onclick="loadLiveStream('live3')">直播频道 3</button>
+      <button onclick="loadLiveStream('live4')">直播频道 4</button>
+      <button onclick="loadLiveStream('live5')">直播频道 5</button>
+    </div>
+    <div id="player"></div>
+    <button id="mute-button" onclick="toggleMute()">🔊</button>
+  </div>
+
+  <div id="article" class="page hidden">
+    <h2>我的第一篇文章</h2>
+    <div id="article-content">
+      <p>这是我的第一篇文章。</p>
+      <img src="images/sample.jpg" alt="图片示例">
+      <audio controls>
+        <source src="audio1.mp3" type="audio/mp3">
+      </audio>
+      <video controls>
+        <source src="video1.mp4" type="video/mp4">
+      </video>
+    </div>
+  </div>
+
+  <div id="gallery" class="page hidden">
+    <h2>我的相册</h2>
+    <div class="gallery">
+      <img src="images/photo1.jpg" alt="照片1" onclick="viewImage(this)">
+      <img src="images/photo2.jpg" alt="照片2" onclick="viewImage(this)">
+      <img src="images/photo3.jpg" alt="照片3" onclick="viewImage(this)">
+    </div>
+    <div class="gallery-modal" id="gallery-modal">
+      <button onclick="closeModal()">关闭</button>
+      <img id="modal-image" src="" alt="大图查看">
+    </div>
+  </div>
+
+  <div id="guestbook" class="page hidden">
+    <h2>留言板</h2>
+    <ul>
+      <li><a href="https://t.me/yourtelegram">Telegram 联系方式</a></li>
+      <li><a href="https://www.youtube.com/channel/yourchannel">YouTube 频道</a></li>
+      <li><a href="https://disqus.com/home/forums/yourforum/">Disqus 评论</a></li>
+      <li><a href="https://gitalk.github.io/">Gitalk 评论</a></li>
+    </ul>
+  </div>
+
+  <!-- 夜间模式按钮 -->
+  <button onclick="toggleDarkMode()">🌙</button>
+
+  <!-- WebAPK安装按钮 -->
+  <button id="install-btn" onclick="installPWA()">🔽 安装</button>
+
+  <script>
+    let isMuted = false;
+    let currentStream = null;
+
+    // 切换页面
+    function switchPage(pageId) {
+      // 隐藏所有页面
+      const pages = document.querySelectorAll('.page');
+      pages.forEach(page => page.classList.add('hidden'));
+      
+      // 显示目标页面
+      document.getElementById(pageId).classList.remove('hidden');
+    }
+
+    // 播放直播
+    function loadLiveStream(channel) {
+      const player = document.getElementById('player');
+      let videoUrl = '';
+      
+      switch (channel) {
+        case 'live1': videoUrl = 'https://www.youtube.com/embed/video_id_1'; break;
+        case 'live2': videoUrl = 'https://www.youtube.com/embed/video_id_2'; break;
+        case 'live3': videoUrl = 'https://www.youtube.com/embed/video_id_3'; break;
+        case 'live4': videoUrl = 'https://www.youtube.com/embed/video_id_4'; break;
+        case 'live5': videoUrl = 'https://www.youtube.com/embed/video_id_5'; break;
+      }
+      
+      // 停止当前播放的直播视频
+      const iframe = document.querySelector('iframe');
+      if (iframe) {
+        const iframeSrc = iframe.src;
+        iframe.src = ''; // 暂停视频
+        iframe.src = iframeSrc; // 恢复视频
+      }
+      
+      // 加载新的视频
+      player.innerHTML = `<iframe width="560" height="315" src="${videoUrl}" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>`;
+    }
+
+    // 控制音量
+    function toggleMute() {
+      isMuted = !isMuted;
+      const iframe = document.querySelector('iframe');
+      const audio = document.querySelector('audio');
+      if (audio) audio.muted = isMuted;
+      if (iframe) {
+        const iframeContent = iframe.contentWindow;
+        iframeContent.postMessage('{"event":"command","func":"mute","args":""}', '*');
+      }
+      document.getElementById('mute-button').innerText = isMuted ? "🔇" : "🔊";
+    }
+
+    // 切换夜间模式
+    function toggleDarkMode() {
+      document.body.classList.toggle('dark-mode');
+      // 存储夜间模式状态
+      localStorage.setItem('dark-mode', document.body.classList.contains('dark-mode'));
+    }
+
+    // 加载夜间模式状态
+    window.addEventListener('load', function() {
+      if (localStorage.getItem('dark-mode') === 'true') {
+        document.body.classList.add('dark-mode');
+      }
+    });
+
+    // WebAPK安装逻辑
+    function installPWA() {
+      alert("点击安装WebAPK！");
+      // 这里可以实现WebAPK安装提示逻辑
+    }
+
+    // 图片查看功能：点击查看大图
+    function viewImage(imgElement) {
+      const modal = document.getElementById('gallery-modal');
+      const modalImage = document.getElementById('modal-image');
+      modalImage.src = imgElement.src;
+      modal.style.display = 'flex';
+    }
+
+    // 关闭图片查看器
+    function closeModal() {
+      const modal = document.getElementById('gallery-modal');
+      modal.style.display = 'none';
+    }
+
+    // 页面滚动时显示安装按钮
+    window.addEventListener('scroll', function() {
+      if (document.body.scrollTop > 100 || document.documentElement.scrollTop > 100) {
+        document.getElementById("install-btn").style.display = "block";
+      } else {
+        document.getElementById("install-btn").style.display = "none";
+      }
+    });
+
+    // 图片幻灯片功能
+    let currentImageIndex = 0;
+    const galleryImages = document.querySelectorAll('.gallery img');
+    
+    function showNextImage() {
+      currentImageIndex = (currentImageIndex + 1) % galleryImages.length;
+      viewImage(galleryImages[currentImageIndex]);
+    }
+
+    function showPreviousImage() {
+      currentImageIndex = (currentImageIndex - 1 + galleryImages.length) % galleryImages.length;
+      viewImage(galleryImages[currentImageIndex]);
+    }
+
+    // 图片点击左右滑动查看
+    document.querySelector('.gallery').addEventListener('click', function(event) {
+      if (event.target.tagName === 'IMG') {
+        viewImage(event.target);
+      }
+    });
+
+    // 添加左右滑动按钮
+    const prevButton = document.createElement('button');
+    prevButton.innerText = '←';
+    prevButton.onclick = showPreviousImage;
+    document.querySelector('.gallery').appendChild(prevButton);
+
+    const nextButton = document.createElement('button');
+    nextButton.innerText = '→';
+    nextButton.onclick = showNextImage;
+    document.querySelector('.gallery').appendChild(nextButton);
+  </script>
+</body>
+</html>
+
