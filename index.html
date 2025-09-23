@@ -525,6 +525,2286 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 </script>
 
+<!-- 模块开头：GitHub博客专用抖音直播播放器 -->
+<div style="width: 100%; max-width: 900px; margin: 25px auto; border-radius: 8px; overflow: hidden; box-shadow: 0 3px 12px rgba(0,0,0,0.05); background: #ffffff;">
+  <!-- 抖音直播配置区（直接修改下方ID/链接即可） -->
+  <script>
+    // 👇 核心配置：填写抖音直播间ID或完整链接（二选一，链接优先）
+    const douyinLiveConfig = {
+      liveRoomId: "cctv6media", // 抖音账号ID（示例：cctv6media，需确保账号正在直播）
+      liveRoomUrl: "" // 抖音直播间完整链接（示例：https://v.douyin.com/xxxx/，若填了链接则此参数无效）
+    };
+
+    // 自动生成有效直播链接
+    function getValidDouyinUrl() {
+      if (douyinLiveConfig.liveRoomUrl) {
+        return douyinLiveConfig.liveRoomUrl;
+      }
+      // 抖音账号ID需拼接用户主页链接，开播后主页会显示直播入口
+      return `https://www.douyin.com/user/${douyinLiveConfig.liveRoomId}`;
+    }
+  </script>
+
+  <!-- 加载状态提示 -->
+  <div id="douyinLoading" style="text-align: center; padding: 30px; background: #fafafa; color: #666; font-size: 15px;">
+    正在加载抖音直播...
+  </div>
+
+  <!-- 直播播放器主体（抖音兼容iframe嵌入） -->
+  <iframe
+    id="douyinLivePlayer"
+    src=""
+    width="100%"
+    height="550"
+    frameborder="0"
+    scrolling="no"
+    allowfullscreen="true"
+    style="display: none; border: none;"
+    title="抖音直播间播放"
+  ></iframe>
+</div>
+
+<script>
+  // 页面加载完成后初始化播放器
+  document.addEventListener("DOMContentLoaded", function() {
+    const liveUrl = getValidDouyinUrl();
+    const player = document.getElementById("douyinLivePlayer");
+    const loadingTip = document.getElementById("douyinLoading");
+
+    // 校验配置有效性
+    if (!liveUrl.includes("douyin.com")) {
+      loadingTip.textContent = "配置错误：请填写有效的抖音直播间ID或链接！";
+      loadingTip.style.color = "#ff4d4f";
+      return;
+    }
+
+    // 加载直播画面（抖音iframe需延迟加载以确保兼容性）
+    setTimeout(() => {
+      player.src = liveUrl;
+    }, 500);
+
+    // 监听播放器加载状态
+    player.onload = function() {
+      player.style.display = "block";
+      loadingTip.style.display = "none";
+    };
+
+    // 加载超时处理
+    setTimeout(() => {
+      if (player.style.display === "none") {
+        loadingTip.textContent = "直播加载超时，可能是直播间未开播或网络问题";
+        loadingTip.style.color = "#ff7a45";
+      }
+    }, 10000);
+  });
+</script>
+<!-- 模块结尾：GitHub博客专用抖音直播播放器 -->
+
+
+<!-- 模块开头：GitHub博客专用快手直播播放器 -->
+<div style="width: 100%; max-width: 900px; margin: 25px auto; border-radius: 8px; overflow: hidden; box-shadow: 0 3px 12px rgba(0,0,0,0.05); background: #ffffff;">
+  <!-- 快手直播配置区（直接修改下方参数即可） -->
+  <script>
+    // 👇 核心配置：填写快手直播间ID或完整链接（二选一，链接优先）
+    const kuaishouLiveConfig = {
+      liveRoomId: "3x8k5q7m9n2p4", // 快手账号ID/直播间ID（示例：从账号主页URL或直播分享页获取）
+      liveRoomUrl: "" // 快手直播间完整链接（示例：https://v.kuaishou.com/xxxx/，填链接则ID无效）
+    };
+
+    // 自动生成有效直播链接
+    function getValidKuaishouUrl() {
+      if (kuaishouLiveConfig.liveRoomUrl) {
+        return kuaishouLiveConfig.liveRoomUrl;
+      }
+      // 快手账号ID拼接用户主页链接，开播后主页会显示“直播中”入口
+      return `https://www.kuaishou.com/profile/${kuaishouLiveConfig.liveRoomId}`;
+    }
+  </script>
+
+  <!-- 加载状态与提示 -->
+  <div id="kuaishouLoading" style="text-align: center; padding: 30px; background: #fafafa; color: #666; font-size: 15px;">
+    正在加载快手直播...
+  </div>
+
+  <!-- 直播播放器主体（适配快手iframe嵌入规则） -->
+  <iframe
+    id="kuaishouLivePlayer"
+    src=""
+    width="100%"
+    height="550"
+    frameborder="0"
+    scrolling="no"
+    allowfullscreen="true"
+    style="display: none; border: none;"
+    title="快手直播间播放"
+  ></iframe>
+</div>
+
+<script>
+  // 页面加载完成后初始化播放器
+  document.addEventListener("DOMContentLoaded", function() {
+    const liveUrl = getValidKuaishouUrl();
+    const player = document.getElementById("kuaishouLivePlayer");
+    const loadingTip = document.getElementById("kuaishouLoading");
+
+    // 校验配置有效性
+    if (!liveUrl.includes("kuaishou.com")) {
+      loadingTip.textContent = "配置错误：请填写有效的快手直播间ID或链接！";
+      loadingTip.style.color = "#ff4d4f";
+      return;
+    }
+
+    // 延迟加载快手直播（适配平台嵌入兼容性）
+    setTimeout(() => {
+      player.src = liveUrl;
+    }, 600);
+
+    // 监听播放器加载状态
+    player.onload = function() {
+      player.style.display = "block";
+      loadingTip.style.display = "none";
+    };
+
+    // 加载超时处理（防止长期显示加载中）
+    setTimeout(() => {
+      if (player.style.display === "none") {
+        loadingTip.textContent = "直播加载超时，可能是直播间未开播或网络问题";
+        loadingTip.style.color = "#ff7a45";
+      }
+    }, 10000);
+  });
+</script>
+<!-- 模块结尾：GitHub博客专用快手直播播放器 -->
+
+<!-- 模块开头：GitHub博客专用哔哩哔哩直播播放器 -->
+<div style="width: 100%; max-width: 950px; margin: 25px auto; border-radius: 8px; overflow: hidden; box-shadow: 0 3px 12px rgba(0,0,0,0.05); background: #ffffff;">
+  <!-- 哔哩哔哩直播配置区（直接修改下方参数即可） -->
+  <script>
+    // 👇 核心配置：填写B站直播间ID或完整链接（二选一，ID优先，更稳定）
+    const bilibiliLiveConfig = {
+      liveRoomId: "2233", // B站直播间数字ID（示例：从直播URL提取，如https://live.bilibili.com/2233 → ID为2233）
+      liveRoomUrl: "" // B站直播间完整链接（示例：https://live.bilibili.com/2233，填ID则此参数无效）
+    };
+
+    // 自动生成B站标准直播嵌入链接（适配iframe播放规则）
+    function getValidBilibiliUrl() {
+      const roomId = bilibiliLiveConfig.liveRoomId || bilibiliLiveConfig.liveRoomUrl.match(/live\.bilibili\.com\/(\d+)/)[1];
+      // B站提供专用嵌入链接，带自动播放和基础控制功能
+      return `https://live.bilibili.com/embed/${roomId}?autoplay=0&high_quality=1&danmaku=1`;
+    }
+  </script>
+
+  <!-- 加载状态提示 -->
+  <div id="bilibiliLoading" style="text-align: center; padding: 30px; background: #fafafa; color: #666; font-size: 15px;">
+    正在加载哔哩哔哩直播...
+  </div>
+
+  <!-- 直播播放器主体（使用B站官方嵌入格式，兼容性更强） -->
+  <iframe
+    id="bilibiliLivePlayer"
+    src=""
+    width="100%"
+    height="600"
+    frameborder="0"
+    scrolling="no"
+    allowfullscreen="true"
+    style="display: none; border: none;"
+    title="哔哩哔哩直播间播放"
+    allow="autoplay; fullscreen"
+  ></iframe>
+</div>
+
+<script>
+  // 页面加载完成后初始化播放器
+  document.addEventListener("DOMContentLoaded", function() {
+    const liveUrl = getValidBilibiliUrl();
+    const player = document.getElementById("bilibiliLivePlayer");
+    const loadingTip = document.getElementById("bilibiliLoading");
+
+    // 校验配置有效性（检查是否能提取到直播间ID）
+    if (!liveUrl.includes("embed")) {
+      loadingTip.textContent = "配置错误：请填写有效的B站直播间ID或链接！";
+      loadingTip.style.color = "#fb7299";
+      return;
+    }
+
+    // 加载B站直播（直接使用官方嵌入链接，稳定性更高）
+    player.src = liveUrl;
+
+    // 监听播放器加载状态
+    player.onload = function() {
+      player.style.display = "block";
+      loadingTip.style.display = "none";
+    };
+
+    // 加载超时处理
+    setTimeout(() => {
+      if (player.style.display === "none") {
+        loadingTip.textContent = "直播加载超时，可能是直播间未开播、网络问题或ID错误";
+        loadingTip.style.color = "#ff7a45";
+      }
+    }, 8000);
+  });
+</script>
+<!-- 模块结尾：GitHub博客专用哔哩哔哩直播播放器 -->
+
+
+<!-- 模块开头：GitHub博客专用微信视频号直播播放器 -->
+<div style="width: 100%; max-width: 850px; margin: 25px auto; border-radius: 8px; overflow: hidden; box-shadow: 0 3px 12px rgba(0,0,0,0.05); background: #ffffff;">
+  <!-- 微信视频号直播配置区（直接修改下方参数即可） -->
+  <script>
+    // 👇 核心配置：填写视频号直播“分享链接”或“视频号ID+直播状态提示”（微信无公开嵌入API，用跳转+提示方案）
+    const wechatLiveConfig = {
+      liveShareUrl: "https://channels.weixin.qq.com/web/pages/live?room_id=1234567890", // 视频号直播分享链接（从微信“分享到朋友圈/复制链接”获取）
+      channelId: "gh_abcdef123456", // 视频号ID（从视频号主页“更多资料”获取，格式如gh_开头）
+      liveTip: "当前直播需跳转微信查看，点击下方按钮进入" // 自定义提示文案
+    };
+
+    // 生成视频号直播访问链接（区分分享链接和账号主页）
+    function getValidWechatUrl() {
+      return wechatLiveConfig.liveShareUrl || `https://channels.weixin.qq.com/web/pages/profile?username=${wechatLiveConfig.channelId}`;
+    }
+  </script>
+
+  <!-- 直播状态提示与跳转区域（微信限制iframe直接播放，用跳转方案） -->
+  <div id="wechatLiveTip" style="text-align: center; padding: 40px 20px; background: #fafafa; color: #666; font-size: 15px;">
+    正在检查微信视频号直播状态...
+  </div>
+
+  <!-- 微信直播跳转按钮（适配移动端/PC端，点击跳转微信环境） -->
+  <div id="wechatLiveBtnContainer" style="text-align: center; padding: 20px 0; display: none;">
+    <a 
+      id="wechatLiveBtn" 
+      href="" 
+      target="_blank" 
+      style="display: inline-block; padding: 12px 30px; background: #07c160; color: #fff; border-radius: 4px; text-decoration: none; font-weight: 500; transition: background 0.3s;"
+    >
+      点击进入微信视频号直播
+    </a>
+    <p style="margin-top: 15px; font-size: 14px; color: #999;">提示：若无法打开，请在微信内复制链接访问</p>
+  </div>
+</div>
+
+<script>
+  // 页面加载完成后初始化提示与跳转
+  document.addEventListener("DOMContentLoaded", function() {
+    const liveUrl = getValidWechatUrl();
+    const tipDom = document.getElementById("wechatLiveTip");
+    const btnContainer = document.getElementById("wechatLiveBtnContainer");
+    const btnDom = document.getElementById("wechatLiveBtn");
+
+    // 校验配置有效性
+    if (!liveUrl.includes("channels.weixin.qq.com")) {
+      tipDom.textContent = "配置错误：请填写有效的微信视频号直播链接或视频号ID！";
+      tipDom.style.color = "#ff4d4f";
+      return;
+    }
+
+    // 更新提示文案与跳转链接
+    setTimeout(() => {
+      tipDom.textContent = wechatLiveConfig.liveTip;
+      tipDom.style.color = "#333";
+      btnDom.href = liveUrl;
+      btnContainer.style.display = "block";
+    }, 1200);
+
+    // 检测是否为微信环境（可选：微信内打开可直接调起视频号）
+    function isWechatEnv() {
+      const ua = navigator.userAgent.toLowerCase();
+      return ua.includes("micromessenger");
+    }
+
+    // 微信环境下优化提示
+    if (isWechatEnv()) {
+      document.getElementById("wechatLiveBtn").innerText = "点击直接打开微信视频号直播";
+    }
+  });
+</script>
+<!-- 模块结尾：GitHub博客专用微信视频号直播播放器 -->
+
+
+<!-- 模块开头：GitHub博客专用YouTube直播播放器 -->
+<div style="width: 100%; max-width: 1000px; margin: 25px auto; border-radius: 8px; overflow: hidden; box-shadow: 0 3px 12px rgba(0,0,0,0.05); background: #ffffff;">
+  <!-- YouTube直播配置区（直接修改下方参数即可） -->
+  <script>
+    // 👇 核心配置：填写YouTube直播间ID或完整链接（二选一，ID优先，兼容性更强）
+    const youtubeLiveConfig = {
+      liveRoomId: "abc123XYZ", // YouTube直播间ID（从直播URL提取：如https://www.youtube.com/watch?v=abc123XYZ → ID为abc123XYZ）
+      liveRoomUrl: "", // YouTube直播间完整链接（示例：https://www.youtube.com/watch?v=abc123XYZ，填ID则此参数无效）
+      showChat: true, // 是否显示直播弹幕（true=显示，false=隐藏）
+      autoPlay: false // 是否自动播放（true=自动播放，false=点击播放，受浏览器自动播放策略限制）
+    };
+
+    // 自动生成YouTube官方嵌入链接（适配iframe播放规则）
+    function getValidYoutubeUrl() {
+      // 提取直播间ID（若填链接则自动解析，填ID直接使用）
+      const roomId = youtubeLiveConfig.liveRoomId || 
+                    (youtubeLiveConfig.liveRoomUrl.match(/watch\?v=([^&]+)/) || [])[1];
+      // YouTube直播嵌入链接模板，带弹幕、自动播放控制
+      return `https://www.youtube.com/embed/${roomId}?autoplay=${youtubeLiveConfig.autoPlay ? 1 : 0}&enablejsapi=1&rel=0&showinfo=0&modestbranding=1&iv_load_policy=3&cc_load_policy=0&${youtubeLiveConfig.showChat ? 'livechat' : ''}`;
+    }
+  </script>
+
+  <!-- 加载状态提示 -->
+  <div id="youtubeLoading" style="text-align: center; padding: 30px; background: #fafafa; color: #666; font-size: 15px;">
+    正在加载YouTube直播...
+  </div>
+
+  <!-- 直播播放器主体（使用YouTube官方嵌入格式，稳定兼容） -->
+  <iframe
+    id="youtubeLivePlayer"
+    src=""
+    width="100%"
+    height="600"
+    frameborder="0"
+    scrolling="no"
+    allowfullscreen="true"
+    style="display: none; border: none;"
+    title="YouTube直播间播放"
+    allow="autoplay; fullscreen; accelerometer; gyroscope"
+  ></iframe>
+</div>
+
+<script>
+  // 页面加载完成后初始化播放器
+  document.addEventListener("DOMContentLoaded", function() {
+    const liveUrl = getValidYoutubeUrl();
+    const player = document.getElementById("youtubeLivePlayer");
+    const loadingTip = document.getElementById("youtubeLoading");
+
+    // 校验配置有效性（检查是否提取到有效直播间ID）
+    if (!liveUrl.includes("embed/") || liveUrl.includes("embed/undefined")) {
+      loadingTip.textContent = "配置错误：请填写有效的YouTube直播间ID或链接！";
+      loadingTip.style.color = "#ff4d4f";
+      return;
+    }
+
+    // 加载YouTube直播（直接使用官方嵌入链接，支持弹幕和播放控制）
+    player.src = liveUrl;
+
+    // 监听播放器加载状态
+    player.onload = function() {
+      player.style.display = "block";
+      loadingTip.style.display = "none";
+    };
+
+    // 加载超时处理（适配网络延迟情况）
+    setTimeout(() => {
+      if (player.style.display === "none") {
+        loadingTip.textContent = "直播加载超时，可能是：1.直播间未开播 2.网络问题 3.需科学上网";
+        loadingTip.style.color = "#ff7a45";
+      }
+    }, 12000);
+  });
+</script>
+<!-- 模块结尾：GitHub博客专用YouTube直播播放器 -->
+
+
+<!-- 模块开头：GitHub博客专用音乐播放器 -->
+<div style="width: 100%; max-width: 800px; margin: 25px auto; padding: 20px; border-radius: 10px; box-shadow: 0 3px 15px rgba(0,0,0,0.06); background: #ffffff; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+  <!-- 音乐配置区：直接添加/修改音乐信息即可 -->
+  <script>
+    // 👇 核心配置：音乐列表（支持多首，可添加/删除，每首需填写title、artist、url）
+    const musicList = [
+      {
+        title: "孤勇者",       // 音乐标题
+        artist: "陈奕迅",     // 歌手
+        url: "https://example.com/music/gu Yongzhe.mp3", // 音乐文件URL（需是公开可访问的MP3链接）
+        cover: "https://example.com/covers/gu Yongzhe.jpg" // 可选：专辑封面图URL
+      },
+      {
+        title: "起风了",
+        artist: "买辣椒也用券",
+        url: "https://example.com/music/qi Fengle.mp3",
+        cover: "https://example.com/covers/qi Fengle.jpg"
+      },
+      {
+        title: "小幸运",
+        artist: "田馥甄",
+        url: "https://example.com/music/xiao Xingyun.mp3",
+        cover: "https://example.com/covers/xiao Xingyun.jpg"
+      }
+    ];
+
+    // 当前播放索引（默认从第1首开始）
+    let currentMusicIndex = 0;
+  </script>
+
+  <!-- 播放器主体 -->
+  <div style="display: flex; align-items: center; gap: 20px; flex-wrap: wrap;">
+    <!-- 专辑封面 -->
+    <div style="position: relative; width: 120px; height: 120px; border-radius: 8px; overflow: hidden; flex-shrink: 0;">
+      <img id="musicCover" src="" alt="专辑封面" style="width: 100%; height: 100%; object-fit: cover;">
+      <!-- 封面旋转动画（播放时生效） -->
+      <style>
+        @keyframes rotate {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+        .rotating { animation: rotate 10s linear infinite; }
+      </style>
+    </div>
+
+    <!-- 音乐信息与控制区 -->
+    <div style="flex: 1; min-width: 250px;">
+      <!-- 音乐标题与歌手 -->
+      <h3 id="musicTitle" style="margin: 0 0 8px; font-size: 18px; color: #333;">--</h3>
+      <p id="musicArtist" style="margin: 0 0 15px; font-size: 14px; color: #666;">--</p>
+
+      <!-- 进度条 -->
+      <div style="width: 100%; margin-bottom: 12px;">
+        <input 
+          id="musicProgress" 
+          type="range" 
+          min="0" 
+          max="100" 
+          value="0" 
+          style="width: 100%; height: 4px; appearance: none; background: #f2f2f2; border-radius: 2px; outline: none;"
+        >
+        <!-- 进度条样式优化（兼容主流浏览器） -->
+        <style>
+          #musicProgress::-webkit-slider-thumb {
+            appearance: none;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: #2c3e50;
+            cursor: pointer;
+          }
+          #musicProgress::-moz-range-thumb {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: #2c3e50;
+            cursor: pointer;
+            border: none;
+          }
+        </style>
+      </div>
+
+      <!-- 时间与控制按钮 -->
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <span id="musicTime" style="font-size: 12px; color: #999;">00:00 / 00:00</span>
+        <div style="display: flex; gap: 15px; align-items: center;">
+          <button id="prevBtn" style="background: none; border: none; font-size: 20px; color: #2c3e50; cursor: pointer;">⏮</button>
+          <button id="playPauseBtn" style="background: #2c3e50; color: #fff; border: none; width: 40px; height: 40px; border-radius: 50%; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center;">▶</button>
+          <button id="nextBtn" style="background: none; border: none; font-size: 20px; color: #2c3e50; cursor: pointer;">⏭</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 音乐列表（可选显示） -->
+  <div style="margin-top: 20px; border-top: 1px solid #f5f5f5; padding-top: 15px;">
+    <h4 style="margin: 0 0 10px; font-size: 14px; color: #666;">播放列表</h4>
+    <ul id="musicPlaylist" style="margin: 0; padding: 0; list-style: none;">
+      <!-- 列表项由JS动态生成 -->
+    </ul>
+  </div>
+</div>
+
+<script>
+  // 初始化音频元素
+  const audio = new Audio();
+  // 获取DOM元素
+  const playPauseBtn = document.getElementById("playPauseBtn");
+  const prevBtn = document.getElementById("prevBtn");
+  const nextBtn = document.getElementById("nextBtn");
+  const musicProgress = document.getElementById("musicProgress");
+  const musicTime = document.getElementById("musicTime");
+  const musicTitle = document.getElementById("musicTitle");
+  const musicArtist = document.getElementById("musicArtist");
+  const musicCover = document.getElementById("musicCover");
+  const musicPlaylist = document.getElementById("musicPlaylist");
+  const coverDom = document.querySelector("#musicCover").parentElement;
+
+  // 加载指定索引的音乐
+  function loadMusic(index) {
+    const music = musicList[index];
+    audio.src = music.url;
+    musicTitle.textContent = music.title;
+    musicArtist.textContent = music.artist;
+    // 加载封面（若无则用默认图）
+    musicCover.src = music.cover || "https://via.placeholder.com/120x120?text=Music";
+    // 更新当前播放索引
+    currentMusicIndex = index;
+    // 更新播放列表选中状态
+    updatePlaylistActive();
+    // 加载完成后自动播放
+    audio.load();
+    audio.play().then(() => {
+      playPauseBtn.textContent = "⏸";
+      coverDom.classList.add("rotating");
+    }).catch(err => {
+      console.error("播放失败：", err);
+      playPauseBtn.textContent = "▶";
+      coverDom.classList.remove("rotating");
+    });
+  }
+
+  // 更新播放列表选中状态
+  function updatePlaylistActive() {
+    const listItems = musicPlaylist.querySelectorAll("li");
+    listItems.forEach((item, index) => {
+      if (index === currentMusicIndex) {
+        item.style.color = "#2c3e50";
+        item.style.fontWeight = "500";
+      } else {
+        item.style.color = "#666";
+        item.style.fontWeight = "normal";
+      }
+    });
+  }
+
+  // 格式化时间（秒转分:秒）
+  function formatTime(seconds) {
+    const min = Math.floor(seconds / 60);
+    const sec = Math.floor(seconds % 60);
+    return `${min.toString().padStart(2, "0")}:${sec.toString().padStart(2, "0")}`;
+  }
+
+  // 初始化播放列表
+  function initPlaylist() {
+    musicList.forEach((music, index) => {
+      const li = document.createElement("li");
+      li.textContent = `${index + 1}. ${music.title} - ${music.artist}`;
+      li.style.padding = "6px 0";
+      li.style.cursor = "pointer";
+      li.addEventListener("click", () => loadMusic(index));
+      musicPlaylist.appendChild(li);
+    });
+  }
+
+  // 事件监听：播放/暂停
+  playPauseBtn.addEventListener("click", () => {
+    if (audio.paused) {
+      audio.play().then(() => {
+        playPauseBtn.textContent = "⏸";
+        coverDom.classList.add("rotating");
+      }).catch(err => console.error("播放失败：", err));
+    } else {
+      audio.pause();
+      playPauseBtn.textContent = "▶";
+      coverDom.classList.remove("rotating");
+    }
+  });
+
+  // 事件监听：上一首
+  prevBtn.addEventListener("click", () => {
+    currentMusicIndex = (currentMusicIndex - 1 + musicList.length) % musicList.length;
+    loadMusic(currentMusicIndex);
+  });
+
+  // 事件监听：下一首
+  nextBtn.addEventListener("click", () => {
+    currentMusicIndex = (currentMusicIndex + 1) % musicList.length;
+    loadMusic(currentMusicIndex);
+  });
+
+  // 事件监听：进度条拖动
+  musicProgress.addEventListener("input", () => {
+    const progress = (musicProgress.value / 100) * audio.duration;
+    audio.currentTime = progress;
+  });
+
+  // 事件监听：音频进度更新
+  audio.addEventListener("timeupdate", () => {
+    const progressPercent = (audio.currentTime / audio.duration) * 100;
+    musicProgress.value = progressPercent;
+    musicTime.textContent = `${formatTime(audio.currentTime)} / ${formatTime(audio.duration)}`;
+  });
+
+  // 事件监听：音频播放结束（自动下一首）
+  audio.addEventListener("ended", () => {
+    currentMusicIndex = (currentMusicIndex + 1) % musicList.length;
+    loadMusic(currentMusicIndex);
+  });
+
+  // 初始化：加载第一首音乐+生成播放列表
+  window.addEventListener("DOMContentLoaded", () => {
+    initPlaylist();
+    loadMusic(0);
+  });
+</script>
+<!-- 模块结尾：GitHub博客专用音乐播放器 -->
+
+
+<!-- 模块开头：GitHub博客专用M3U8电视直播播放器 -->
+<div style="width: 100%; max-width: 1000px; margin: 25px auto; border-radius: 8px; overflow: hidden; box-shadow: 0 3px 12px rgba(0,0,0,0.05); background: #ffffff;">
+  <!-- M3U8直播配置区（直接修改下方链接即可） -->
+  <script>
+    // 👇 核心配置：填写M3U8电视直播链接（需是公开可访问的有效M3U8地址）
+    const m3u8LiveConfig = {
+      liveUrl: "https://example.com/live/cctv1.m3u8", // M3U8直播源链接（替换为你的实际链接）
+      liveName: "CCTV1 综合频道", // 直播频道名称（自定义，如“湖南卫视”“CCTV5+体育”）
+      autoPlay: false, // 是否自动播放（true=自动，false=点击播放，受浏览器策略限制）
+      controls: true // 是否显示播放器控制栏（进度、音量等，true=显示，false=隐藏）
+    };
+  </script>
+
+  <!-- 播放器容器 -->
+  <div style="position: relative; width: 100%;">
+    <!-- 加载状态提示 -->
+    <div id="m3u8Loading" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: #000; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 16px; z-index: 10;">
+      正在加载「${m3u8LiveConfig.liveName}」直播...
+    </div>
+
+    <!-- 视频播放器主体（用于承载M3U8流） -->
+    <video
+      id="m3u8LivePlayer"
+      style="width: 100%; height: auto; min-height: 500px; background: #000; display: block;"
+      playsinline
+      webkit-playsinline
+      controls="${m3u8LiveConfig.controls}"
+      autoplay="${m3u8LiveConfig.autoPlay}"
+      preload="auto"
+    >
+      您的浏览器不支持HTML5视频播放，请升级浏览器后重试。
+    </video>
+
+    <!-- 直播频道名称标签 -->
+    <div style="position: absolute; top: 15px; left: 15px; background: rgba(0,0,0,0.5); color: #fff; padding: 5px 12px; border-radius: 4px; font-size: 14px; z-index: 5;">
+      ${m3u8LiveConfig.liveName}
+    </div>
+  </div>
+
+  <!-- 播放状态提示（错误/未开播等） -->
+  <div id="m3u8StatusTip" style="padding: 15px; text-align: center; font-size: 14px; color: #666; display: none;"></div>
+</div>
+
+<!-- 引入M3U8解析依赖（Hls.js，处理M3U8流播放） -->
+<script src="https://cdn.jsdelivr.net/npm/hls.js@1.4.14/dist/hls.min.js"></script>
+
+<script>
+  // 页面加载完成后初始化播放器
+  document.addEventListener("DOMContentLoaded", function() {
+    const videoElement = document.getElementById("m3u8LivePlayer");
+    const loadingDom = document.getElementById("m3u8Loading");
+    const statusTipDom = document.getElementById("m3u8StatusTip");
+    const liveUrl = m3u8LiveConfig.liveUrl;
+
+    // 替换加载提示中的频道名称
+    loadingDom.textContent = `正在加载「${m3u8LiveConfig.liveName}」直播...`;
+
+    // 校验M3U8链接有效性
+    if (!liveUrl || !liveUrl.endsWith(".m3u8")) {
+      loadingDom.style.display = "none";
+      statusTipDom.textContent = "配置错误：请填写有效的M3U8直播链接（链接需以.m3u8结尾）！";
+      statusTipDom.style.color = "#ff4d4f";
+      statusTipDom.style.display = "block";
+      return;
+    }
+
+    // 检查浏览器是否支持HLS（M3U8）播放
+    function initM3u8Player() {
+      // 情况1：浏览器原生支持HLS（如Safari）
+      if (videoElement.canPlayType('application/vnd.apple.mpegurl')) {
+        videoElement.src = liveUrl;
+        bindPlayerEvents();
+      } 
+      // 情况2：浏览器不原生支持，用Hls.js解析
+      else if (window.Hls) {
+        const hls = new Hls({
+          enableWorker: true, // 启用Worker提升性能
+          lowLatencyMode: true, // 低延迟模式（直播更实时）
+          backBufferLength: 90 // 缓存长度（秒）
+        });
+
+        // 绑定Hls.js事件（加载、错误等）
+        hls.on(Hls.Events.MANIFEST_PARSED, () => {
+          console.log("M3U8直播源解析成功，开始播放");
+          videoElement.src = liveUrl;
+          if (m3u8LiveConfig.autoPlay) {
+            videoElement.play().catch(handlePlayError);
+          }
+          bindPlayerEvents();
+        });
+
+        hls.on(Hls.Events.ERROR, (event, data) => {
+          console.error("M3U8播放错误：", data);
+          loadingDom.style.display = "none";
+          statusTipDom.textContent = `直播加载失败：${data.details || "链接无效或直播未开播"}`;
+          statusTipDom.style.color = "#ff4d4f";
+          statusTipDom.style.display = "block";
+          // 尝试恢复播放（针对临时网络错误）
+          if (data.fatal) {
+            switch(data.type) {
+              case Hls.ErrorTypes.NETWORK_ERROR:
+                hls.startLoad();
+                break;
+              case Hls.ErrorTypes.MEDIA_ERROR:
+                hls.recoverMediaError();
+                break;
+              default:
+                break;
+            }
+          }
+        });
+
+        // 加载M3U8链接
+        hls.loadSource(liveUrl);
+        hls.attachMedia(videoElement);
+      } 
+      // 情况3：浏览器完全不支持M3U8
+      else {
+        loadingDom.style.display = "none";
+        statusTipDom.textContent = "您的浏览器不支持M3U8直播播放，请使用Chrome、Safari或Edge等现代浏览器！";
+        statusTipDom.style.color = "#ff4d4f";
+        statusTipDom.style.display = "block";
+      }
+    }
+
+    // 绑定视频播放器事件（播放、暂停、结束等）
+    function bindPlayerEvents() {
+      // 播放成功：隐藏加载提示
+      videoElement.addEventListener("play", () => {
+        loadingDom.style.display = "none";
+        statusTipDom.style.display = "none";
+      });
+
+      // 播放暂停：显示“已暂停”提示
+      videoElement.addEventListener("pause", () => {
+        if (!videoElement.ended) {
+          statusTipDom.textContent = "直播已暂停，点击播放按钮继续观看";
+          statusTipDom.style.color = "#666";
+          statusTipDom.style.display = "block";
+        }
+      });
+
+      // 播放错误：显示错误信息
+      videoElement.addEventListener("error", () => {
+        loadingDom.style.display = "none";
+        statusTipDom.textContent = `直播播放错误：${videoElement.error.message || "未知错误"}`;
+        statusTipDom.style.color = "#ff4d4f";
+        statusTipDom.style.display = "block";
+      });
+    }
+
+    // 处理自动播放失败（浏览器拦截）
+    function handlePlayError(err) {
+      console.warn("自动播放被拦截：", err);
+      loadingDom.style.display = "none";
+      statusTipDom.textContent = "请点击播放器的「播放」按钮开始观看直播（浏览器拦截了自动播放）";
+      statusTipDom.style.color = "#666";
+      statusTipDom.style.display = "block";
+    }
+
+    // 初始化M3U8播放器
+    initM3u8Player();
+  });
+</script>
+<!-- 模块结尾：GitHub博客专用M3U8电视直播播放器 -->
+
+<!-- 模块开头：GitHub博客专用人民币实时汇率查询与转换工具 -->
+<div style="width: 100%; max-width: 800px; margin: 25px auto; padding: 20px; border-radius: 10px; box-shadow: 0 3px 15px rgba(0,0,0,0.06); background: #ffffff; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+  <!-- 标题区域 -->
+  <h3 style="margin: 0 0 20px; font-size: 18px; color: #333; border-bottom: 1px solid #f5f5f5; padding-bottom: 10px;">
+    人民币实时汇率查询与转换
+  </h3>
+
+  <!-- 汇率显示区域 -->
+  <div style="margin-bottom: 25px;">
+    <h4 style="margin: 0 0 12px; font-size: 14px; color: #666;">当前汇率（1人民币可兑换）</h4>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px;">
+      <!-- 美元汇率卡片 -->
+      <div style="padding: 15px; border-radius: 8px; background: #f8f9fa; text-align: center;">
+        <div style="font-size: 12px; color: #999; margin-bottom: 5px;">美元 (USD)</div>
+        <div id="cny-to-usd" style="font-size: 20px; font-weight: 500; color: #333;">--</div>
+        <div id="usd-to-cny" style="font-size: 12px; color: #666; margin-top: 3px;">1 USD ≈ -- CNY</div>
+      </div>
+      <!-- 日元汇率卡片 -->
+      <div style="padding: 15px; border-radius: 8px; background: #f8f9fa; text-align: center;">
+        <div style="font-size: 12px; color: #999; margin-bottom: 5px;">日元 (JPY)</div>
+        <div id="cny-to-jpy" style="font-size: 20px; font-weight: 500; color: #333;">--</div>
+        <div id="jpy-to-cny" style="font-size: 12px; color: #666; margin-top: 3px;">100 JPY ≈ -- CNY</div>
+      </div>
+      <!-- 港元汇率卡片 -->
+      <div style="padding: 15px; border-radius: 8px; background: #f8f9fa; text-align: center;">
+        <div style="font-size: 12px; color: #999; margin-bottom: 5px;">港元 (HKD)</div>
+        <div id="cny-to-hkd" style="font-size: 20px; font-weight: 500; color: #333;">--</div>
+        <div id="hkd-to-cny" style="font-size: 12px; color: #666; margin-top: 3px;">1 HKD ≈ -- CNY</div>
+      </div>
+    </div>
+    <div id="rate-update-time" style="margin-top: 10px; font-size: 12px; color: #999; text-align: right;">
+      汇率更新时间：--
+    </div>
+  </div>
+
+  <!-- 汇率转换区域 -->
+  <div>
+    <h4 style="margin: 0 0 12px; font-size: 14px; color: #666;">货币转换</h4>
+    <div style="display: flex; flex-wrap: wrap; gap: 15px; align-items: center;">
+      <!-- 输入金额 -->
+      <div style="flex: 1; min-width: 150px;">
+        <label style="display: block; font-size: 12px; color: #666; margin-bottom: 5px;">输入金额</label>
+        <input 
+          id="convert-amount" 
+          type="number" 
+          min="0" 
+          step="0.01" 
+          value="1" 
+          style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; box-sizing: border-box;"
+        >
+      </div>
+      <!-- 源货币选择 -->
+      <div style="min-width: 120px;">
+        <label style="display: block; font-size: 12px; color: #666; margin-bottom: 5px;">源货币</label>
+        <select id="source-currency" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; background: #fff;">
+          <option value="CNY">人民币 (CNY)</option>
+          <option value="USD">美元 (USD)</option>
+          <option value="JPY">日元 (JPY)</option>
+          <option value="HKD">港元 (HKD)</option>
+        </select>
+      </div>
+      <!-- 目标货币选择 -->
+      <div style="min-width: 120px;">
+        <label style="display: block; font-size: 12px; color: #666; margin-bottom: 5px;">目标货币</label>
+        <select id="target-currency" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; background: #fff;">
+          <option value="USD">美元 (USD)</option>
+          <option value="JPY">日元 (JPY)</option>
+          <option value="HKD">港元 (HKD)</option>
+          <option value="CNY">人民币 (CNY)</option>
+        </select>
+      </div>
+      <!-- 转换按钮 -->
+      <div style="min-width: 100px; align-self: flex-end; margin-bottom: 24px;">
+        <button id="convert-btn" style="width: 100%; padding: 10px; background: #2c3e50; color: #fff; border: none; border-radius: 4px; cursor: pointer; transition: background 0.3s;">
+          立即转换
+        </button>
+      </div>
+    </div>
+    <!-- 转换结果 -->
+    <div id="convert-result" style="margin-top: 15px; padding: 15px; border-radius: 8px; background: #f8f9fa; text-align: center; font-size: 16px; color: #333; display: none;">
+      <span id="result-content">1 CNY ≈ 0.14 USD</span>
+    </div>
+  </div>
+</div>
+
+<script>
+  // 存储汇率数据（CNY为基础，1 CNY = ? 其他货币）
+  let exchangeRates = {};
+  // 公开汇率API（无需密钥，适合前端调用）
+  const RATE_API_URL = "https://open.er-api.com/v6/latest/CNY";
+
+  // 1. 获取并更新实时汇率
+  async function fetchAndUpdateRates() {
+    const usdDom = document.getElementById("cny-to-usd");
+    const jpyDom = document.getElementById("cny-to-jpy");
+    const hkdDom = document.getElementById("cny-to-hkd");
+    const usdReverseDom = document.getElementById("usd-to-cny");
+    const jpyReverseDom = document.getElementById("jpy-to-cny");
+    const hkdReverseDom = document.getElementById("hkd-to-cny");
+    const timeDom = document.getElementById("rate-update-time");
+
+    try {
+      const response = await fetch(RATE_API_URL);
+      const data = await response.json();
+      
+      if (data.result === "success") {
+        // 存储汇率（保留4位小数）
+        exchangeRates = {
+          USD: parseFloat(data.rates.USD.toFixed(4)),
+          JPY: parseFloat(data.rates.JPY.toFixed(4)),
+          HKD: parseFloat(data.rates.HKD.toFixed(4)),
+          CNY: 1 // 1 CNY = 1 CNY
+        };
+
+        // 更新汇率显示（1 CNY 可兑换的其他货币）
+        usdDom.textContent = exchangeRates.USD;
+        jpyDom.textContent = exchangeRates.JPY;
+        hkdDom.textContent = exchangeRates.HKD;
+
+        // 更新反向汇率（1其他货币 可兑换的CNY，保留4位小数）
+        usdReverseDom.textContent = `1 USD ≈ ${(1 / exchangeRates.USD).toFixed(4)} CNY`;
+        jpyReverseDom.textContent = `100 JPY ≈ ${(100 / exchangeRates.JPY).toFixed(4)} CNY`;
+        hkdReverseDom.textContent = `1 HKD ≈ ${(1 / exchangeRates.HKD).toFixed(4)} CNY`;
+
+        // 更新时间（格式：YYYY-MM-DD HH:MM）
+        const updateTime = new Date(data.time_last_update_unix * 1000);
+        const formattedTime = `${updateTime.getFullYear()}-${(updateTime.getMonth() + 1).toString().padStart(2, "0")}-${updateTime.getDate().toString().padStart(2, "0")} ${updateTime.getHours().toString().padStart(2, "0")}:${updateTime.getMinutes().toString().padStart(2, "0")}`;
+        timeDom.textContent = `汇率更新时间：${formattedTime}`;
+      } else {
+        throw new Error("获取汇率失败，API返回错误");
+      }
+    } catch (err) {
+      console.error("汇率获取错误：", err);
+      usdDom.textContent = "获取失败";
+      jpyDom.textContent = "获取失败";
+      hkdDom.textContent = "获取失败";
+      timeDom.textContent = "汇率更新时间：获取失败";
+    }
+  }
+
+  // 2. 执行货币转换
+  function handleCurrencyConvert() {
+    const amountInput = document.getElementById("convert-amount");
+    const sourceCurrency = document.getElementById("source-currency").value;
+    const targetCurrency = document.getElementById("target-currency").value;
+    const resultDom = document.getElementById("convert-result");
+    const resultContentDom = document.getElementById("result-content");
+
+    // 输入校验
+    const amount = parseFloat(amountInput.value);
+    if (isNaN(amount) || amount < 0) {
+      alert("请输入有效的非负金额");
+      return;
+    }
+    if (!exchangeRates[sourceCurrency] || !exchangeRates[targetCurrency]) {
+      alert("汇率数据未加载完成，请稍后再试");
+      return;
+    }
+
+    // 计算转换结果（保留4位小数）
+    // 逻辑：金额 * (1 CNY兑目标货币汇率) / (1 CNY兑源货币汇率)
+    const convertedAmount = (amount * exchangeRates[targetCurrency] / exchangeRates[sourceCurrency]).toFixed(4);
+    // 显示结果
+    resultContentDom.textContent = `${amount} ${sourceCurrency} ≈ ${convertedAmount} ${targetCurrency}`;
+    resultDom.style.display = "block";
+  }
+
+  // 3. 初始化与事件绑定
+  window.addEventListener("DOMContentLoaded", () => {
+    // 初始加载汇率
+    fetchAndUpdateRates();
+    // 每30分钟刷新一次汇率（避免频繁请求API）
+    setInterval(fetchAndUpdateRates, 30 * 60 * 1000);
+
+    // 绑定转换按钮点击事件
+    document.getElementById("convert-btn").addEventListener("click", handleCurrencyConvert);
+    // 绑定回车键触发转换
+    document.getElementById("convert-amount").addEventListener("keydown", (e) => {
+      if (e.key === "Enter") handleCurrencyConvert();
+    });
+  });
+</script>
+<!-- 模块结尾：GitHub博客专用人民币实时汇率查询与转换工具 -->
+
+
+<!-- 模块开头：GitHub博客专用AI助手交互模块（豆包） -->
+<div style="width: 100%; max-width: 800px; margin: 25px auto; border-radius: 10px; overflow: hidden; box-shadow: 0 3px 15px rgba(0,0,0,0.06); background: #ffffff; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+  <!-- 模块标题栏 -->
+  <div style="padding: 15px 20px; background: #2c3e50; color: #ffffff; display: flex; align-items: center; justify-content: space-between;">
+    <h3 style="margin: 0; font-size: 16px; font-weight: 500;">AI助手（豆包）</h3>
+    <span id="ai-status" style="font-size: 12px; opacity: 0.8;">就绪，可提问</span>
+  </div>
+
+  <!-- 聊天内容区域 -->
+  <div id="ai-chat-container" style="height: 400px; overflow-y: auto; padding: 20px; background: #fafafa; display: flex; flex-direction: column; gap: 15px;">
+    <!-- 初始欢迎消息 -->
+    <div style="align-self: flex-start; max-width: 80%;">
+      <div style="font-size: 12px; color: #999; margin-bottom: 5px;">AI助手 · 刚刚</div>
+      <div style="padding: 12px 15px; border-radius: 8px; background: #ffffff; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+        你好！我是豆包，有什么我可以帮你的吗？比如解答问题、写文案、处理代码等～
+      </div>
+    </div>
+  </div>
+
+  <!-- 输入交互区域 -->
+  <div style="padding: 15px 20px; border-top: 1px solid #f5f5f5; background: #ffffff;">
+    <div style="display: flex; gap: 10px; align-items: flex-end;">
+      <!-- 输入框 -->
+      <textarea 
+        id="ai-input" 
+        placeholder="请输入你的问题或需求..." 
+        style="flex: 1; min-height: 60px; padding: 12px; border: 1px solid #ddd; border-radius: 8px; resize: none; box-sizing: border-box; font-family: inherit; font-size: 14px;"
+      ></textarea>
+      <!-- 发送按钮 -->
+      <button 
+        id="ai-send-btn" 
+        style="padding: 12px 20px; background: #2c3e50; color: #ffffff; border: none; border-radius: 8px; cursor: pointer; transition: background 0.3s; white-space: nowrap;"
+      >
+        发送
+      </button>
+    </div>
+    <!-- 功能提示 -->
+    <div style="margin-top: 10px; font-size: 12px; color: #999; text-align: right;">
+      支持问题解答、代码辅助、文案创作等功能
+    </div>
+  </div>
+</div>
+
+<script>
+  // 核心交互逻辑
+  document.addEventListener("DOMContentLoaded", () => {
+    const chatContainer = document.getElementById("ai-chat-container");
+    const inputDom = document.getElementById("ai-input");
+    const sendBtn = document.getElementById("ai-send-btn");
+    const statusDom = document.getElementById("ai-status");
+
+    // 1. 添加消息到聊天容器
+    function addMessage(content, isAi = false) {
+      const messageDiv = document.createElement("div");
+      messageDiv.style.alignSelf = isAi ? "flex-start" : "flex-end";
+      messageDiv.style.maxWidth = "80%";
+
+      const timeDiv = document.createElement("div");
+      timeDiv.style.fontSize = "12px";
+      timeDiv.style.color = "#999";
+      timeDiv.style.marginBottom = "5px";
+      timeDiv.style.textAlign = isAi ? "left" : "right";
+      const now = new Date();
+      const timeText = `${now.getHours().toString().padStart(2, "0")}:${now.getMinutes().toString().padStart(2, "0")}`;
+      timeDiv.textContent = `${isAi ? "AI助手" : "我"} · ${timeText}`;
+
+      const contentDiv = document.createElement("div");
+      contentDiv.style.padding = "12px 15px";
+      contentDiv.style.borderRadius = "8px";
+      contentDiv.style.boxShadow = "0 1px 3px rgba(0,0,0,0.05)";
+      contentDiv.style.background = isAi ? "#ffffff" : "#2c3e50";
+      contentDiv.style.color = isAi ? "#333" : "#ffffff";
+      contentDiv.style.fontSize = "14px";
+      contentDiv.textContent = content;
+
+      messageDiv.appendChild(timeDiv);
+      messageDiv.appendChild(contentDiv);
+      chatContainer.appendChild(messageDiv);
+
+      // 滚动到底部
+      chatContainer.scrollTop = chatContainer.scrollHeight;
+    }
+
+    // 2. 模拟AI回复（实际需对接API，此处为演示逻辑）
+    function getAiResponse(userInput) {
+      // 模拟不同需求的回复逻辑（实际项目中替换为真实API请求）
+      const lowerInput = userInput.toLowerCase().trim();
+      
+      if (lowerInput.includes("代码") || lowerInput.includes("编程")) {
+        return "你需要哪类代码帮助呀？比如HTML/CSS/JavaScript，或者Python/Java等语言？可以告诉我具体场景，我会帮你整理代码示例～";
+      } else if (lowerInput.includes("汇率") || lowerInput.includes("货币")) {
+        return "当前人民币对主要货币的汇率需要实时获取，你可以使用之前的汇率模块查询，或者告诉我具体货币（如美元、日元），我可以帮你说明汇率计算逻辑～";
+      } else if (lowerInput.includes("直播") || lowerInput.includes("播放器")) {
+        return "之前已经为你准备了抖音、虎牙、B站等直播播放器模块，你可以直接嵌入博客使用。如果需要调整样式或功能（比如添加新平台），可以告诉我具体需求～";
+      } else if (lowerInput.includes("你好") || lowerInput.includes("hi")) {
+        return "你好呀！很高兴为你服务～有任何问题或需求，都可以随时告诉我～";
+      } else {
+        return "感谢你的提问！由于这是演示模块，暂时无法提供真实的个性化回复。在实际项目中，你可以对接AI开放平台API（如字节跳动API），即可实现真实的交互功能～";
+      }
+    }
+
+    // 3. 处理发送逻辑
+    function handleSend() {
+      const userInput = inputDom.value.trim();
+      if (!userInput) {
+        alert("请输入你的问题或需求～");
+        return;
+      }
+
+      // 添加用户消息
+      addMessage(userInput, false);
+      // 清空输入框
+      inputDom.value = "";
+      // 更新状态
+      statusDom.textContent = "正在思考...";
+      sendBtn.disabled = true;
+      sendBtn.style.opacity = "0.6";
+
+      // 模拟AI思考延迟（1.5秒后回复）
+      setTimeout(() => {
+        const aiResponse = getAiResponse(userInput);
+        addMessage(aiResponse, true);
+        // 恢复状态
+        statusDom.textContent = "就绪，可提问";
+        sendBtn.disabled = false;
+        sendBtn.style.opacity = "1";
+      }, 1500);
+    }
+
+    // 4. 绑定事件
+    // 发送按钮点击
+    sendBtn.addEventListener("click", handleSend);
+    // 回车键发送（Ctrl+Enter换行，单独Enter发送）
+    inputDom.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" && !e.ctrlKey) {
+        e.preventDefault();
+        handleSend();
+      }
+    });
+  });
+</script>
+<!-- 模块结尾：GitHub博客专用AI助手交互模块（豆包） -->
+
+<!-- 模块开头：GitHub博客专用QQ联系方式模块 -->
+<div style="width: 100%; max-width: 600px; margin: 25px auto; padding: 20px; border-radius: 10px; box-shadow: 0 3px 15px rgba(0,0,0,0.06); background: #ffffff; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; display: flex; flex-wrap: wrap; align-items: center; gap: 20px;">
+  <!-- QQ图标区域 -->
+  <div style="width: 100px; height: 100px; flex-shrink: 0; border-radius: 50%; background: #12B7F5; display: flex; align-items: center; justify-content: center;">
+    <span style="font-size: 48px; color: #ffffff; font-weight: bold;">QQ</span>
+  </div>
+
+  <!-- 联系方式核心区域 -->
+  <div style="flex: 1; min-width: 250px;">
+    <h3 style="margin: 0 0 15px; font-size: 18px; color: #333;">QQ联系我</h3>
+    
+    <!-- QQ号码展示 -->
+    <div style="margin-bottom: 12px; display: flex; align-items: center; gap: 10px;">
+      <span style="width: 60px; font-size: 14px; color: #666;">QQ号码：</span>
+      <span id="qq-number" style="font-size: 16px; color: #333; font-weight: 500;">123456789</span>
+      <button onclick="copyQQNumber()" style="padding: 4px 8px; background: #f5f5f5; border: 1px solid #ddd; border-radius: 4px; font-size: 12px; color: #666; cursor: pointer;">复制</button>
+    </div>
+
+    <!-- QQ状态提示 -->
+    <div style="margin-bottom: 12px; display: flex; align-items: center; gap: 10px;">
+      <span style="width: 60px; font-size: 14px; color: #666;">在线状态：</span>
+      <span style="font-size: 14px; color: #12B7F5; display: flex; align-items: center; gap: 5px;">
+        <span style="width: 8px; height: 8px; border-radius: 50%; background: #12B7F5;"></span>
+        工作日9:00-18:00在线，看到消息会及时回复
+      </span>
+    </div>
+
+    <!-- 快捷联系按钮 -->
+    <div style="display: flex; gap: 10px;">
+      <!-- 一键加好友链接（需替换自己的QQ号） -->
+      <a href="tencent://AddContact/?fromId=45&fromSubId=1&subcmd=all&uin=123456789&website=www.oicqzone.com" 
+         target="_blank" 
+         style="padding: 8px 16px; background: #12B7F5; color: #ffffff; border-radius: 4px; text-decoration: none; font-size: 14px; transition: background 0.3s;">
+        一键加好友
+      </a>
+      <!-- 发起临时会话链接（需替换自己的QQ号） -->
+      <a href="tencent://message/?uin=123456789&Site=qq&Menu=yes" 
+         target="_blank" 
+         style="padding: 8px 16px; background: #f5f5f5; color: #333; border: 1px solid #ddd; border-radius: 4px; text-decoration: none; font-size: 14px; transition: background 0.3s;">
+        发起临时会话
+      </a>
+    </div>
+  </div>
+</div>
+
+<script>
+  // 复制QQ号码功能
+  function copyQQNumber() {
+    const qqNumber = document.getElementById("qq-number").textContent;
+    // 创建临时输入框实现复制
+    const tempInput = document.createElement("input");
+    tempInput.value = qqNumber;
+    document.body.appendChild(tempInput);
+    tempInput.select();
+    document.execCommand("copy");
+    document.body.removeChild(tempInput);
+    // 提示复制成功
+    alert(`QQ号码 ${qqNumber} 已复制到剪贴板！`);
+  }
+
+  // 页面加载时替换QQ号（也可直接在HTML中修改）
+  window.addEventListener("DOMContentLoaded", () => {
+    // 👇 替换为你的真实QQ号，会同步更新所有关联链接和显示
+    const yourQQNumber = "123456789";
+    
+    // 更新QQ号码显示
+    document.getElementById("qq-number").textContent = yourQQNumber;
+    // 更新一键加好友链接
+    document.querySelector("a[href*='AddContact']").href = `tencent://AddContact/?fromId=45&fromSubId=1&subcmd=all&uin=${yourQQNumber}&website=www.oicqzone.com`;
+    // 更新临时会话链接
+    document.querySelector("a[href*='message']").href = `tencent://message/?uin=${yourQQNumber}&Site=qq&Menu=yes`;
+  });
+</script>
+<!-- 模块结尾：GitHub博客专用QQ联系方式模块 -->
+
+<!-- 模块开头：GitHub博客专用微信联系方式模块 -->
+<div style="width: 100%; max-width: 600px; margin: 25px auto; padding: 20px; border-radius: 10px; box-shadow: 0 3px 15px rgba(0,0,0,0.06); background: #ffffff; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; display: flex; flex-wrap: wrap; align-items: center; gap: 25px;">
+  <!-- 微信二维码区域 -->
+  <div style="flex-shrink: 0; text-align: center;">
+    <!-- 微信图标 -->
+    <div style="width: 80px; height: 80px; margin: 0 auto 10px; border-radius: 20px; background: #07C160; display: flex; align-items: center; justify-content: center;">
+      <span style="font-size: 40px; color: #ffffff; font-weight: bold;">微</span>
+    </div>
+    <!-- 二维码占位（替换为自己的微信二维码图片URL） -->
+    <div style="width: 180px; height: 180px; margin: 0 auto; border: 1px solid #f5f5f5; border-radius: 8px; display: flex; align-items: center; justify-content: center; background: #fafafa;">
+      <img id="wechat-qrcode" src="https://via.placeholder.com/160x160?text=微信二维码" alt="微信二维码" style="width: 160px; height: 160px; object-fit: cover;">
+    </div>
+    <p style="margin: 10px 0 0; font-size: 12px; color: #999;">扫码添加微信好友</p>
+  </div>
+
+  <!-- 微信联系信息区域 -->
+  <div style="flex: 1; min-width: 250px;">
+    <h3 style="margin: 0 0 18px; font-size: 18px; color: #333;">微信联系我</h3>
+    
+    <!-- 微信号展示 -->
+    <div style="margin-bottom: 15px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+      <span style="min-width: 70px; font-size: 14px; color: #666;">微信号：</span>
+      <span id="wechat-id" style="font-size: 16px; color: #333; font-weight: 500; flex: 1;">wechat123456</span>
+      <button onclick="copyWechatId()" style="padding: 5px 10px; background: #f5f5f5; border: 1px solid #ddd; border-radius: 4px; font-size: 12px; color: #666; cursor: pointer; white-space: nowrap;">复制微信号</button>
+    </div>
+
+    <!-- 联系提示 -->
+    <div style="margin-bottom: 15px; padding: 12px; border-radius: 8px; background: #fafafa; border-left: 4px solid #07C160;">
+      <p style="margin: 0; font-size: 14px; color: #666; line-height: 1.5;">
+        添加好友时请备注 <span style="color: #07C160; font-weight: 500;">“来自GitHub博客”</span>，方便我快速通过~<br>
+        日常会及时回复消息，若未秒回请稍等，看到后会第一时间处理
+      </p>
+    </div>
+
+    <!-- 额外联系说明 -->
+    <div style="font-size: 13px; color: #999;">
+      <p style="margin: 0;">也可直接搜索微信号添加，或保存上方二维码图片到手机，打开微信“扫一扫”识别</p>
+    </div>
+  </div>
+</div>
+
+<script>
+  // 复制微信号功能
+  function copyWechatId() {
+    const wechatId = document.getElementById("wechat-id").textContent;
+    // 创建临时输入框实现复制
+    const tempInput = document.createElement("input");
+    tempInput.value = wechatId;
+    document.body.appendChild(tempInput);
+    tempInput.select();
+    document.execCommand("copy");
+    document.body.removeChild(tempInput);
+    // 提示复制成功
+    alert(`微信号 ${wechatId} 已复制到剪贴板！`);
+  }
+
+  // 页面加载时替换微信信息（集中修改此处即可）
+  window.addEventListener("DOMContentLoaded", () => {
+    // 👇 替换为你的微信信息
+    const yourWechatId = "wechat123456"; // 你的微信号
+    const yourWechatQrcodeUrl = "https://via.placeholder.com/160x160?text=微信二维码"; // 你的微信二维码图片URL（建议用公开图床链接）
+
+    // 更新微信号显示
+    document.getElementById("wechat-id").textContent = yourWechatId;
+    // 更新微信二维码图片
+    document.getElementById("wechat-qrcode").src = yourWechatQrcodeUrl;
+    document.getElementById("wechat-qrcode").alt = `微信二维码（微信号：${yourWechatId}）`;
+  });
+</script>
+<!-- 模块结尾：GitHub博客专用微信联系方式模块 -->
+
+
+<!-- 模块开头：GitHub博客专用邮箱联系方式模块 -->
+<div style="width: 100%; max-width: 650px; margin: 25px auto; padding: 22px; border-radius: 10px; box-shadow: 0 3px 15px rgba(0,0,0,0.06); background: #ffffff; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+  <!-- 头部图标与标题 -->
+  <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 20px;">
+    <div style="width: 48px; height: 48px; border-radius: 8px; background: #007AFF; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+      <span style="font-size: 24px; color: #ffffff;">✉️</span>
+    </div>
+    <h3 style="margin: 0; font-size: 18px; color: #333;">邮箱联系我</h3>
+  </div>
+
+  <!-- 邮箱核心信息区 -->
+  <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 15px; margin-bottom: 22px;">
+    <!-- 邮箱地址展示 -->
+    <div style="flex: 1; min-width: 280px; padding: 15px; border-radius: 8px; background: #fafafa; border-left: 4px solid #007AFF;">
+      <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+        <div>
+          <p style="margin: 0 0 5px; font-size: 14px; color: #666;">我的邮箱</p>
+          <p id="email-address" style="margin: 0; font-size: 16px; color: #333; font-weight: 500; word-break: break-all;">example@163.com</p>
+        </div>
+        <button onclick="copyEmail()" style="padding: 6px 12px; background: #007AFF; color: #ffffff; border: none; border-radius: 4px; font-size: 14px; cursor: pointer; transition: background 0.3s;">
+          复制邮箱
+        </button>
+      </div>
+    </div>
+
+    <!-- 一键发送按钮 -->
+    <a id="email-send-link" href="mailto:example@163.com?subject=来自GitHub博客的联系" 
+       target="_blank" 
+       style="padding: 10px 20px; background: #f5f5f5; color: #333; border: 1px solid #ddd; border-radius: 4px; text-decoration: none; font-size: 14px; white-space: nowrap; transition: background 0.3s;">
+       一键发送邮件
+    </a>
+  </div>
+
+  <!-- 邮件备注提示 -->
+  <div style="padding: 14px; border-radius: 8px; background: #f8f9fa; border: 1px solid #f0f0f0;">
+    <p style="margin: 0; font-size: 14px; color: #666; line-height: 1.6;">
+      <span style="color: #007AFF; font-weight: 500;">建议备注</span>：发送邮件时可在主题栏注明“来自GitHub博客”，正文说明你的需求（如技术交流、合作咨询等），我会在1-2个工作日内回复，感谢理解～
+    </p>
+  </div>
+</div>
+
+<script>
+  // 复制邮箱功能
+  function copyEmail() {
+    const email = document.getElementById("email-address").textContent;
+    // 创建临时输入框实现复制（兼容所有浏览器）
+    const tempInput = document.createElement("textarea");
+    tempInput.value = email;
+    document.body.appendChild(tempInput);
+    tempInput.select();
+    document.execCommand("copy");
+    document.body.removeChild(tempInput);
+    // 提示复制成功
+    alert(`邮箱 ${email} 已复制到剪贴板，可直接粘贴使用～`);
+  }
+
+  // 页面加载时替换邮箱信息（集中修改此处即可）
+  window.addEventListener("DOMContentLoaded", () => {
+    // 👇 替换为你的真实邮箱信息
+    const yourEmail = "example@163.com"; // 你的邮箱地址（如xxx@qq.com、xxx@gmail.com）
+    const emailSubject = "来自GitHub博客的联系"; // 邮件默认主题（可自定义）
+
+    // 更新邮箱地址显示
+    document.getElementById("email-address").textContent = yourEmail;
+    // 更新“一键发送邮件”链接（自动拼接主题）
+    document.getElementById("email-send-link").href = `mailto:${yourEmail}?subject=${encodeURIComponent(emailSubject)}`;
+  });
+</script>
+<!-- 模块结尾：GitHub博客专用邮箱联系方式模块 -->
+
+
+
+<!-- 模块开头：GitHub博客专用Telegram Bot前端直连消息模块（免登录） -->
+<div style="width: 100%; max-width: 700px; margin: 25px auto; padding: 22px; border-radius: 10px; box-shadow: 0 3px 15px rgba(0,0,0,0.06); background: #ffffff; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+  <!-- 头部信息：图标+标题+安全提示 -->
+  <div style="margin-bottom: 20px; border-bottom: 1px solid #f5f5f5; padding-bottom: 15px;">
+    <h3 style="margin: 0 0 8px; font-size: 18px; color: #333; display: flex; align-items: center; gap: 10px;">
+      <span style="font-size: 22px; color: #0088cc;">✈️</span>
+      发送消息给 Telegram Bot
+    </h3>
+    <p style="margin: 0 0 8px; font-size: 14px; color: #666;">免登录直接发送，消息将实时送达指定Bot</p>
+    <p style="margin: 0; font-size: 12px; color: #ff4d4f; background: #fff8f8; padding: 6px; border-radius: 4px;">
+      ⚠️ 提示：此为前端直连演示，实际使用需注意Bot Token安全（建议后期搭配后端隐藏Token）
+    </p>
+  </div>
+
+  <!-- 消息输入表单 -->
+  <form id="tg-bot-form" style="display: flex; flex-direction: column; gap: 15px;">
+    <!-- Bot配置（访客无需填写，你提前设置好） -->
+    <div style="padding: 10px; background: #fafafa; border-radius: 6px; font-size: 14px; color: #666;">
+      当前接收Bot：<span id="bot-name" style="color: #0088cc; font-weight: 500;">@Your_TJ_Bot</span>
+    </div>
+
+    <!-- 访客消息内容 -->
+    <div>
+      <label style="display: block; margin-bottom: 6px; font-size: 14px; color: #666;">你的消息（必填）</label>
+      <textarea 
+        id="message-content" 
+        placeholder="请输入要发送的内容，比如咨询、反馈等..." 
+        style="width: 100%; min-height: 150px; padding: 12px; border: 1px solid #ddd; border-radius: 6px; resize: vertical; box-sizing: border-box; font-family: inherit; font-size: 14px;"
+        required
+      ></textarea>
+    </div>
+
+    <!-- 可选联系信息（方便你回复） -->
+    <div>
+      <label style="display: block; margin-bottom: 6px; font-size: 14px; color: #666;">你的联系方式（可选，如Telegram用户名/邮箱）</label>
+      <input 
+        type="text" 
+        id="visitor-contact" 
+        placeholder="例：@taylor_graham 或 xxx@email.com" 
+        style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; font-size: 14px;"
+      >
+    </div>
+
+    <!-- 发送按钮与反馈 -->
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+      <button 
+        type="submit" 
+        id="send-btn" 
+        style="padding: 12px 24px; background: #0088cc; color: #ffffff; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; transition: background 0.3s;"
+      >
+        发送消息
+      </button>
+      <div id="send-status" style="font-size: 14px; font-weight: 500;"></div>
+    </div>
+  </form>
+</div>
+
+<script>
+  // *************************
+  // 你需要修改的核心配置（必改）
+  // *************************
+  const TG_CONFIG = {
+    botToken: "123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11", // 你的Bot Token（从@BotFather获取）
+    chatId: "987654321", // 你的Telegram账号ID（从@getidsbot获取）
+    botUsername: "@Your_TJ_Bot" // 你的Bot用户名（如@TJ_Service_Bot）
+  };
+
+  // DOM元素获取
+  const form = document.getElementById("tg-bot-form");
+  const sendBtn = document.getElementById("send-btn");
+  const sendStatus = document.getElementById("send-status");
+  const messageContent = document.getElementById("message-content");
+  const visitorContact = document.getElementById("visitor-contact");
+  const botName = document.getElementById("bot-name");
+
+  // 页面加载时填充Bot名称
+  window.addEventListener("DOMContentLoaded", () => {
+    botName.textContent = TG_CONFIG.botUsername;
+  });
+
+  // 格式化消息内容（包含时间和联系方式）
+  function getFormattedMessage() {
+    const contact = visitorContact.value.trim() || "未提供联系方式";
+    const content = messageContent.value.trim();
+    const time = new Date().toLocaleString("zh-CN", {
+      year: "numeric", month: "2-digit", day: "2-digit",
+      hour: "2-digit", minute: "2-digit"
+    });
+    return `【GitHub博客访客消息】\n发送时间：${time}\n访客联系方式：${contact}\n消息内容：\n${content}`;
+  }
+
+  // 前端直接调用Telegram Bot API发送消息
+  async function sendToTelegramBot(message) {
+    // Telegram Bot API的发送消息接口
+    const apiUrl = `https://api.telegram.org/bot${TG_CONFIG.botToken}/sendMessage`;
+    
+    try {
+      const response = await fetch(apiUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          chat_id: TG_CONFIG.chatId,
+          text: message,
+          parse_mode: "HTML" // 支持简单HTML格式（可选）
+        })
+      });
+
+      const data = await response.json();
+      return data.ok; // API返回ok为true表示发送成功
+    } catch (err) {
+      console.error("发送失败：", err);
+      return false;
+    }
+  }
+
+  // 表单提交处理
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault(); // 阻止表单默认刷新
+
+    // 按钮状态锁定（防止重复发送）
+    sendBtn.disabled = true;
+    sendBtn.style.opacity = "0.7";
+    sendBtn.textContent = "发送中...";
+    sendStatus.textContent = "";
+
+    try {
+      // 1. 获取格式化后的消息
+      const message = getFormattedMessage();
+      // 2. 调用API发送消息
+      const isSuccess = await sendToTelegramBot(message);
+
+      // 3. 显示发送结果
+      if (isSuccess) {
+        sendStatus.textContent = "✅ 发送成功！";
+        sendStatus.style.color = "#008000";
+        // 清空输入框（保留联系方式）
+        messageContent.value = "";
+      } else {
+        sendStatus.textContent = "❌ 发送失败，请重试！";
+        sendStatus.style.color = "#ff4d4f";
+      }
+    } catch (err) {
+      sendStatus.textContent = "❌ 网络错误，请检查连接！";
+      sendStatus.style.color = "#ff4d4f";
+    } finally {
+      // 恢复按钮状态
+      sendBtn.disabled = false;
+      sendBtn.style.opacity = "1";
+      sendBtn.textContent = "发送消息";
+    }
+  });
+</script>
+<!-- 模块结尾：GitHub博客专用Telegram Bot前端直连消息模块（免登录） -->
+
+
+<!-- 模块开头：GitHub博客专用Facebook直播嵌入模块 -->
+<div style="width: 100%; max-width: 1000px; margin: 25px auto; padding: 20px; border-radius: 10px; box-shadow: 0 3px 15px rgba(0,0,0,0.06); background: #ffffff; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+  <!-- 直播标题与状态区 -->
+  <div style="margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+    <h3 style="margin: 0; font-size: 18px; color: #333; display: flex; align-items: center; gap: 8px;">
+      <span style="color: #1877F2; font-size: 22px;">📺</span>
+      Facebook 直播
+    </h3>
+    <!-- 直播状态标签（默认“加载中”，可根据实际状态修改） -->
+    <span id="fb-live-status" style="padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 500; background: #f0f2f5; color: #65676b;">
+      加载直播状态中...
+    </span>
+  </div>
+
+  <!-- 直播播放器容器 -->
+  <div style="position: relative; width: 100%; border-radius: 8px; overflow: hidden; background: #000; margin-bottom: 15px;">
+    <!-- Facebook直播嵌入iframe（核心） -->
+    <iframe
+      id="fb-live-player"
+      src="" 
+      width="100%" 
+      height="500" 
+      style="border: none; display: block;"
+      allowfullscreen
+      allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"
+      loading="lazy"
+    ></iframe>
+
+    <!-- 加载失败备用提示 -->
+    <div id="fb-live-fallback" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: none; flex-direction: column; align-items: center; justify-content: center; color: #ffffff; text-align: center; padding: 20px;">
+      <span style="font-size: 48px; margin-bottom: 15px;">⚠️</span>
+      <h4 style="margin: 0 0 10px; font-size: 18px;">直播加载失败</h4>
+      <p style="margin: 0; font-size: 14px; max-width: 500px;">可能是直播未开始、链接失效，或当前网络无法访问Facebook，请稍后重试</p>
+      <a id="fb-live-direct-link" href="" target="_blank" style="margin-top: 15px; padding: 8px 16px; background: #1877F2; color: #ffffff; border-radius: 4px; text-decoration: none; font-size: 14px;">
+        前往Facebook观看
+      </a>
+    </div>
+  </div>
+
+  <!-- 直播信息补充区 -->
+  <div style="padding: 15px; border-radius: 8px; background: #f0f2f5;">
+    <div style="display: flex; flex-wrap: wrap; gap: 15px; align-items: center;">
+      <div style="flex: 1; min-width: 250px;">
+        <p style="margin: 0; font-size: 14px; color: #65676b;">
+          直播来源：<a id="fb-page-link" href="" target="_blank" style="color: #1877F2; text-decoration: none; font-weight: 500;"></a>
+        </p>
+      </div>
+      <div style="font-size: 12px; color: #65676b;">
+        提示：若直播无声音，可检查浏览器音量设置；点击播放器右下角“全屏”图标可切换全屏模式
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // *************************
+  // 你需要修改的核心配置（必改）
+  // *************************
+  const FB_LIVE_CONFIG = {
+    // Facebook直播的“视频ID”或“直播链接”（二选一即可）
+    liveVideoId: "123456789012345", // 从直播链接中提取（如链接https://www.facebook.com/abc/videos/123456789012345/中的“123456789012345”）
+    livePageUrl: "https://www.facebook.com/YourFacebookPage", // 你的Facebook主页链接（用于补充信息和备用跳转）
+    autoPlay: false // 是否自动播放（true=自动，false=点击播放，受浏览器策略限制）
+  };
+
+  // DOM元素获取
+  const livePlayer = document.getElementById("fb-live-player");
+  const liveStatus = document.getElementById("fb-live-status");
+  const liveFallback = document.getElementById("fb-live-fallback");
+  const liveDirectLink = document.getElementById("fb-live-direct-link");
+  const pageLink = document.getElementById("fb-page-link");
+
+  // 初始化Facebook直播嵌入
+  function initFbLivePlayer() {
+    // 1. 拼接Facebook直播嵌入链接（官方标准格式）
+    const fbEmbedUrl = `https://www.facebook.com/plugins/video.php?href=https%3A%2F%2Fwww.facebook.com%2Fvideos%2F${FB_LIVE_CONFIG.liveVideoId}%2F&show_text=0&width=800&autoplay=${FB_LIVE_CONFIG.autoPlay ? 1 : 0}&mute=0&allow_fullscreen=1&loop=0&small_header=0&adapter_width=100%25&hide_cover=0&show_facepile=0`;
+    
+    // 2. 设置播放器和链接
+    livePlayer.src = fbEmbedUrl;
+    liveDirectLink.href = `https://www.facebook.com/videos/${FB_LIVE_CONFIG.liveVideoId}/`;
+    pageLink.href = FB_LIVE_CONFIG.livePageUrl;
+    pageLink.textContent = FB_LIVE_CONFIG.livePageUrl.replace("https://www.facebook.com/", "").replace("/", "");
+
+    // 3. 监听iframe加载状态（判断是否加载成功）
+    livePlayer.onload = () => {
+      liveStatus.textContent = "直播加载完成";
+      liveStatus.style.background = "#e8f4ea";
+      liveStatus.style.color = "#1a7f40";
+    };
+
+    // 4. 加载超时处理（10秒后仍未加载则显示备用提示）
+    setTimeout(() => {
+      if (livePlayer.contentDocument.body.innerHTML.includes("error") || livePlayer.contentDocument.body.innerHTML.trim() === "") {
+        livePlayer.style.display = "none";
+        liveFallback.style.display = "flex";
+        liveStatus.textContent = "直播加载失败";
+        liveStatus.style.background = "#ffebee";
+        liveStatus.style.color = "#d32f2f";
+      }
+    }, 10000);
+  }
+
+  // 页面加载完成后初始化
+  window.addEventListener("DOMContentLoaded", initFbLivePlayer);
+</script>
+<!-- 模块结尾：GitHub博客专用Facebook直播嵌入模块 -->
+
+
+<!-- 模块开头：GitHub博客专用Instagram直播嵌入模块 -->
+<div style="width: 100%; max-width: 800px; margin: 25px auto; padding: 20px; border-radius: 10px; box-shadow: 0 3px 15px rgba(0,0,0,0.06); background: #ffffff; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+  <!-- 头部标题与状态 -->
+  <div style="margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+    <h3 style="margin: 0; font-size: 18px; color: #333; display: flex; align-items: center; gap: 8px;">
+      <span style="color: #E4405F; font-size: 22px;">📱</span>
+      Instagram 直播
+    </h3>
+    <span id="ig-live-status" style="padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 500; background: #fafafa; color: #65676b;">
+      检测直播状态中...
+    </span>
+  </div>
+
+  <!-- 直播核心区域（两种模式：直播中显示播放器，未直播显示提示） -->
+  <div style="position: relative; width: 100%; border-radius: 8px; overflow: hidden; margin-bottom: 15px;">
+    <!-- 1. 直播播放器（直播中显示） -->
+    <div id="ig-live-player-container" style="width: 100%; background: #000; display: none;">
+      <!-- Instagram直播嵌入iframe（官方兼容格式） -->
+      <iframe
+        id="ig-live-player"
+        src=""
+        width="100%"
+        height="450"
+        style="border: none; display: block;"
+        allowfullscreen
+        allow="autoplay; clipboard-write; encrypted-media; picture-in-picture"
+        loading="lazy"
+      ></iframe>
+    </div>
+
+    <!-- 2. 非直播状态提示（未开播/加载失败时显示） -->
+    <div id="ig-live-fallback" style="width: 100%; background: #fafafa; padding: 40px 20px; text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center; border: 1px solid #f0f0f0;">
+      <span style="font-size: 48px; color: #E4405F; margin-bottom: 15px;">📺</span>
+      <h4 id="fallback-title" style="margin: 0 0 10px; font-size: 16px; color: #333;">直播暂未开始</h4>
+      <p id="fallback-desc" style="margin: 0 0 20px; font-size: 14px; color: #65676b; max-width: 500px;">
+        请关注Instagram账号获取最新直播通知，开播后将自动更新
+      </p>
+      <!-- 前往Instagram按钮 -->
+      <a id="ig-direct-link" href="" target="_blank" style="padding: 10px 20px; background: #E4405F; color: #ffffff; border-radius: 4px; text-decoration: none; font-size: 14px; transition: background 0.3s;">
+        前往Instagram主页
+      </a>
+    </div>
+  </div>
+
+  <!-- 直播补充信息 -->
+  <div style="padding: 15px; border-radius: 8px; background: #fafafa;">
+    <div style="display: flex; flex-wrap: wrap; gap: 15px; align-items: center;">
+      <div style="flex: 1; min-width: 250px;">
+        <p style="margin: 0; font-size: 14px; color: #65676b;">
+          主播账号：<a id="ig-account-link" href="" target="_blank" style="color: #E4405F; text-decoration: none; font-weight: 500;"></a>
+        </p>
+      </div>
+      <div style="font-size: 12px; color: #65676b;">
+        提示：Instagram直播仅支持在开播时加载，未开播将显示账号跳转入口
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // *************************
+  // 你需要修改的核心配置（必改）
+  // *************************
+  const IG_LIVE_CONFIG = {
+    username: "your_instagram_username", // 你的Instagram账号用户名（如"taylor_graham"，不含@）
+    liveHighlightId: "17895693822000000", // 可选：直播回放/精彩片段ID（开播时可留空，回放时填写）
+    autoPlay: false // 是否自动播放（true=自动，false=点击播放，受浏览器策略限制）
+  };
+
+  // DOM元素获取
+  const livePlayerContainer = document.getElementById("ig-live-player-container");
+  const livePlayer = document.getElementById("ig-live-player");
+  const liveFallback = document.getElementById("ig-live-fallback");
+  const liveStatus = document.getElementById("ig-live-status");
+  const directLink = document.getElementById("ig-direct-link");
+  const accountLink = document.getElementById("ig-account-link");
+  const fallbackTitle = document.getElementById("fallback-title");
+  const fallbackDesc = document.getElementById("fallback-desc");
+
+  // 初始化Instagram直播链接与信息
+  function initIgLive() {
+    // 1. 设置基础链接（账号主页、备用跳转）
+    const accountUrl = `https://www.instagram.com/${IG_LIVE_CONFIG.username}/`;
+    directLink.href = accountUrl;
+    accountLink.href = accountUrl;
+    accountLink.textContent = `@${IG_LIVE_CONFIG.username}`;
+
+    // 2. 拼接直播/回放嵌入链接（Instagram官方嵌入规则）
+    let embedUrl = "";
+    if (IG_LIVE_CONFIG.liveHighlightId) {
+      // 回放/精彩片段模式
+      embedUrl = `https://www.instagram.com/p/${IG_LIVE_CONFIG.liveHighlightId}/embed/?autoplay=${IG_LIVE_CONFIG.autoPlay ? 1 : 0}&captioned=0`;
+    } else {
+      // 实时直播模式（依赖账号开播状态，未开播则显示 fallback）
+      embedUrl = `https://www.instagram.com/${IG_LIVE_CONFIG.username}/live/embed/?autoplay=${IG_LIVE_CONFIG.autoPlay ? 1 : 0}`;
+    }
+
+    // 3. 加载播放器并检测状态
+    livePlayer.src = embedUrl;
+    checkLiveStatus(embedUrl);
+  }
+
+  // 检测直播状态（加载成功/失败/未开播）
+  function checkLiveStatus(embedUrl) {
+    // 监听iframe加载完成
+    livePlayer.onload = () => {
+      // 检查播放器内容是否有效（直播中会有播放控件，未开播则显示"未找到"提示）
+      setTimeout(() => {
+        try {
+          const playerContent = livePlayer.contentDocument.body.innerText;
+          if (playerContent.includes("Live") || playerContent.includes("直播") || !playerContent.includes("not found")) {
+            // 直播中/回放可用：显示播放器，隐藏 fallback
+            livePlayerContainer.style.display = "block";
+            liveFallback.style.display = "none";
+            liveStatus.textContent = IG_LIVE_CONFIG.liveHighlightId ? "直播回放加载完成" : "正在直播中";
+            liveStatus.style.background = "#e8f4ea";
+            liveStatus.style.color = "#1a7f40";
+          } else {
+            // 未开播/链接无效：显示 fallback
+            handleFallback("直播暂未开始", "主播当前未开启直播，点击按钮前往Instagram关注最新动态");
+          }
+        } catch (err) {
+          // 跨域访问限制：直接显示 fallback（Instagram 部分嵌入内容有跨域保护）
+          handleFallback("直播状态无法检测", "建议前往Instagram账号查看是否正在直播");
+        }
+      }, 2000);
+    };
+
+    // 加载超时处理（10秒未加载成功则显示 fallback）
+    setTimeout(() => {
+      if (!livePlayerContainer.style.display) {
+        handleFallback("直播加载超时", "网络较慢或直播未开播，可前往Instagram直接查看");
+      }
+    }, 10000);
+  }
+
+  // 处理非直播状态（统一更新提示文案和状态）
+  function handleFallback(title, desc) {
+    fallbackTitle.textContent = title;
+    fallbackDesc.textContent = desc;
+    liveStatus.textContent = title;
+    liveStatus.style.background = "#ffebee";
+    liveStatus.style.color = "#d32f2f";
+  }
+
+  // 页面加载完成后初始化
+  window.addEventListener("DOMContentLoaded", initIgLive);
+</script>
+<!-- 模块结尾：GitHub博客专用Instagram直播嵌入模块 -->
+
+
+<!-- 模块开头：GitHub博客专用洛雪音乐Web版嵌入模块 -->
+<div style="width: 100%; max-width: 800px; margin: 25px auto; padding: 20px; border-radius: 10px; box-shadow: 0 3px 15px rgba(0,0,0,0.06); background: #ffffff; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+  <!-- 模块标题与说明 -->
+  <div style="margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+    <h3 style="margin: 0; font-size: 18px; color: #333; display: flex; align-items: center; gap: 8px;">
+      <span style="color: #1677ff; font-size: 22px;">🎵</span>
+      洛雪音乐（Web版）
+    </h3>
+    <p style="margin: 0; font-size: 12px; color: #65676b;">
+      开源免费无广告，支持全网音乐搜索播放
+    </p>
+  </div>
+
+  <!-- 核心播放器容器（嵌入洛雪音乐Web版） -->
+  <div style="width: 100%; border-radius: 8px; overflow: hidden; border: 1px solid #f0f0f0; background: #fafafa;">
+    <!-- 洛雪音乐Web版iframe（使用公开可用的Web部署地址，无需本地添加音乐链接） -->
+    <iframe
+      src="https://lxmusic.toside.cn/#/search"  <!-- 稳定的洛雪音乐Web公开部署地址 -->
+      width="100%"
+      height="600"
+      style="border: none; display: block;"
+      allowfullscreen
+      allow="clipboard-write; encrypted-media"
+      loading="lazy"
+    ></iframe>
+
+    <!-- 加载失败备用提示 -->
+    <div id="lxmusic-fallback" style="width: 100%; height: 600px; display: none; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 20px; background: #fafafa;">
+      <span style="font-size: 48px; color: #ff4d4f; margin-bottom: 15px;">⚠️</span>
+      <h4 style="margin: 0 0 10px; font-size: 16px; color: #333;">洛雪音乐加载失败</h4>
+      <p style="margin: 0 0 20px; font-size: 14px; color: #65676b; max-width: 500px;">
+        可能是网络问题或当前Web部署地址暂时不可用，可尝试刷新页面或使用备用链接
+      </p>
+      <a href="https://lxmusic.toside.cn/#/search" target="_blank" style="padding: 10px 20px; background: #1677ff; color: #ffffff; border-radius: 4px; text-decoration: none; font-size: 14px;">
+        前往洛雪音乐官网使用
+      </a>
+    </div>
+  </div>
+
+  <!-- 使用说明 -->
+  <div style="margin-top: 15px; padding: 12px; border-radius: 8px; background: #f0f2f5; font-size: 14px; color: #65676b;">
+    <p style="margin: 0 0 8px; font-weight: 500; color: #333;">使用说明：</p>
+    <ul style="margin: 0; padding-left: 20px; line-height: 1.6;">
+      <li>无需注册登录，直接在搜索框输入歌手/歌曲名即可播放；</li>
+      <li>支持切换音源（如QQ音乐、网易云音乐等），点击播放页"音源"按钮选择；</li>
+      <li>若遇到部分歌曲无法播放，可尝试切换其他音源或刷新页面；</li>
+      <li>该模块使用洛雪音乐公开Web部署，开源项目地址：<a href="https://github.com/lyswhut/lx-music-desktop" target="_blank" style="color: #1677ff; text-decoration: none;">lyswhut/lx-music-desktop</a>。</li>
+    </ul>
+  </div>
+</div>
+
+<script>
+  // 检测洛雪音乐iframe加载状态，加载失败时显示备用提示
+  const lxIframe = document.querySelector("iframe[src*='lxmusic']");
+  const lxFallback = document.getElementById("lxmusic-fallback");
+
+  // 1. 监听iframe加载完成事件
+  lxIframe.onload = () => {
+    // 加载完成后隐藏备用提示（若之前显示）
+    lxFallback.style.display = "none";
+  };
+
+  // 2. 加载超时处理（10秒未加载成功则显示备用提示）
+  setTimeout(() => {
+    try {
+      // 尝试访问iframe内容，判断是否加载成功（跨域可能导致访问失败，需通过间接方式判断）
+      const iframeDoc = lxIframe.contentDocument || lxIframe.contentWindow.document;
+      // 若iframe内无内容或显示错误页面，触发备用提示
+      if (!iframeDoc.body || iframeDoc.body.innerText.includes("404") || iframeDoc.body.innerText.includes("错误")) {
+        lxIframe.style.display = "none";
+        lxFallback.style.display = "flex";
+      }
+    } catch (err) {
+      // 跨域访问限制属于正常情况，不强制显示备用提示（避免误判）
+      console.log("洛雪音乐iframe跨域访问，无法直接检测状态");
+    }
+  }, 10000);
+
+  // 3. 窗口大小变化时调整iframe高度（可选优化，适配不同屏幕）
+  window.addEventListener("resize", () => {
+    const containerWidth = document.querySelector(".lxmusic-fallback").parentElement.offsetWidth;
+    // 保持16:9左右的宽高比，确保播放体验
+    lxIframe.height = Math.max(500, containerWidth * 0.75);
+    lxFallback.height = Math.max(500, containerWidth * 0.75);
+  });
+</script>
+<!-- 模块结尾：GitHub博客专用洛雪音乐Web版嵌入模块 -->
+
+
+<!-- 模块开头：GitHub博客专用经典小游戏合集（手机适配版） -->
+<div style="width: 100%; max-width: 500px; margin: 25px auto; padding: 20px; border-radius: 12px; box-shadow: 0 3px 15px rgba(0,0,0,0.08); background: #ffffff; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+  <!-- 模块标题 -->
+  <h3 style="margin: 0 0 20px; font-size: 18px; color: #333; text-align: center; display: flex; align-items: center; justify-content: center; gap: 8px;">
+    <span style="font-size: 22px; color: #ff4d4f;">🎮</span>
+    经典小游戏合集
+  </h3>
+
+  <!-- 游戏选择卡片（手机点击友好，带旋转动效） -->
+  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
+    <!-- 超级玛丽 -->
+    <div class="game-card" data-game="mario" style="padding: 15px; border-radius: 8px; background: #f8f9fa; text-align: center; cursor: pointer; transition: all 0.3s; border: 1px solid #f0f0f0;">
+      <div style="width: 60px; height: 60px; margin: 0 auto 10px; background: #ffcc00; border-radius: 50%; display: flex; align-items: center; justify-content: center; transition: transform 0.5s ease;">
+        <span style="font-size: 24px; color: #ffffff; font-weight: bold;">玛</span>
+      </div>
+      <h4 style="margin: 0 0 5px; font-size: 14px; color: #333;">超级玛丽</h4>
+      <p style="margin: 0; font-size: 12px; color: #65676b;">经典闯关</p>
+    </div>
+
+    <!-- 魂斗罗 -->
+    <div class="game-card" data-game="contra" style="padding: 15px; border-radius: 8px; background: #f8f9fa; text-align: center; cursor: pointer; transition: all 0.3s; border: 1px solid #f0f0f0;">
+      <div style="width: 60px; height: 60px; margin: 0 auto 10px; background: #ff4d4f; border-radius: 50%; display: flex; align-items: center; justify-content: center; transition: transform 0.5s ease;">
+        <span style="font-size: 24px; color: #ffffff; font-weight: bold;">魂</span>
+      </div>
+      <h4 style="margin: 0 0 5px; font-size: 14px; color: #333;">魂斗罗</h4>
+      <p style="margin: 0; font-size: 12px; color: #65676b;">双人射击</p>
+    </div>
+
+    <!-- 坦克大战 -->
+    <div class="game-card" data-game="tank" style="padding: 15px; border-radius: 8px; background: #f8f9fa; text-align: center; cursor: pointer; transition: all 0.3s; border: 1px solid #f0f0f0;">
+      <div style="width: 60px; height: 60px; margin: 0 auto 10px; background: #00ccff; border-radius: 50%; display: flex; align-items: center; justify-content: center; transition: transform 0.5s ease;">
+        <span style="font-size: 24px; color: #ffffff; font-weight: bold;">坦</span>
+      </div>
+      <h4 style="margin: 0 0 5px; font-size: 14px; color: #333;">坦克大战</h4>
+      <p style="margin: 0; font-size: 12px; color: #65676b;">保卫基地</p>
+    </div>
+
+    <!-- 更多游戏（占位） -->
+    <div class="game-card" data-game="more" style="padding: 15px; border-radius: 8px; background: #f8f9fa; text-align: center; cursor: pointer; transition: all 0.3s; border: 1px solid #f0f0f0;">
+      <div style="width: 60px; height: 60px; margin: 0 auto 10px; background: #999999; border-radius: 50%; display: flex; align-items: center; justify-content: center; transition: transform 0.5s ease;">
+        <span style="font-size: 24px; color: #ffffff; font-weight: bold;">更</span>
+      </div>
+      <h4 style="margin: 0 0 5px; font-size: 14px; color: #333;">更多游戏</h4>
+      <p style="margin: 0; font-size: 12px; color: #65676b;">敬请期待</p>
+    </div>
+  </div>
+
+  <!-- 游戏播放器容器（默认隐藏，选游戏后显示） -->
+  <div id="game-player" style="width: 100%; border-radius: 8px; overflow: hidden; border: 1px solid #f0f0f0; background: #000; display: none;">
+    <!-- 游戏iframe（加载公开H5游戏资源） -->
+    <iframe
+      id="game-iframe"
+      src=""
+      width="100%"
+      height="350"  <!-- 手机适配高度，16:9比例 -->
+      style="border: none; display: block;"
+      allowfullscreen
+      allow="clipboard-write; encrypted-media"
+      loading="lazy"
+    ></iframe>
+
+    <!-- 游戏控制栏（手机触摸友好） -->
+    <div style="padding: 10px; background: #f0f0f0; display: flex; justify-content: space-between; align-items: center;">
+      <button id="close-game" style="padding: 6px 12px; background: #ff4d4f; color: #ffffff; border: none; border-radius: 4px; font-size: 12px; cursor: pointer;">
+        关闭游戏
+      </button>
+      <div style="font-size: 12px; color: #65676b;">
+        提示：点击屏幕控制，双指缩放可调整视角
+      </div>
+    </div>
+  </div>
+
+  <!-- 初始提示（选游戏前显示） -->
+  <div id="init-tip" style="padding: 20px; border-radius: 8px; background: #fafafa; text-align: center; border: 1px dashed #f0f0f0;">
+    <span style="font-size: 32px; color: #999; margin-bottom: 10px; display: block;">🎮</span>
+    <p style="margin: 0; font-size: 14px; color: #65676b;">点击上方游戏卡片，即可开始游玩</p>
+  </div>
+</div>
+
+<script>
+  // 游戏配置：映射游戏标识到对应的H5游戏地址（公开免费资源，无需手动添加）
+  const GAME_CONFIG = {
+    mario: "https://h5.4399.com/play/253488.htm",    // 超级玛丽H5版
+    contra: "https://h5.4399.com/play/113385.htm",    // 魂斗罗H5版
+    tank: "https://h5.4399.com/play/108788.htm",      // 坦克大战H5版
+    more: "https://h5.4399.com/"                      // 更多游戏跳转页
+  };
+
+  // DOM元素获取
+  const gameCards = document.querySelectorAll(".game-card");
+  const gamePlayer = document.getElementById("game-player");
+  const gameIframe = document.getElementById("game-iframe");
+  const initTip = document.getElementById("init-tip");
+  const closeGameBtn = document.getElementById("close-game");
+
+  // 1. 游戏卡片点击事件（带旋转动效）
+  gameCards.forEach(card => {
+    card.addEventListener("click", () => {
+      const gameType = card.dataset.game;
+      const gameUrl = GAME_CONFIG[gameType];
+
+      // 卡片旋转动效
+      const icon = card.querySelector("div");
+      icon.style.transform = "rotate(360deg)";
+      setTimeout(() => {
+        icon.style.transform = "rotate(0)";
+      }, 500);
+
+      // 显示播放器，隐藏初始提示
+      gameIframe.src = gameUrl;
+      gamePlayer.style.display = "block";
+      initTip.style.display = "none";
+
+      // 适配手机：强制iframe横屏提示（可选）
+      if (window.innerWidth < 768) {
+        alert("建议横屏游玩体验更佳，可旋转手机屏幕～");
+      }
+    });
+
+    // 卡片hover效果（PC端优化）
+    card.addEventListener("mouseenter", () => {
+      card.style.transform = "translateY(-3px)";
+      card.style.boxShadow = "0 5px 15px rgba(0,0,0,0.05)";
+      card.style.borderColor = "#ff4d4f";
+    });
+    card.addEventListener("mouseleave", () => {
+      card.style.transform = "translateY(0)";
+      card.style.boxShadow = "none";
+      card.style.borderColor = "#f0f0f0";
+    });
+  });
+
+  // 2. 关闭游戏按钮事件
+  closeGameBtn.addEventListener("click", () => {
+    gamePlayer.style.display = "none";
+    gameIframe.src = "";  // 清空iframe，避免后台继续播放
+    initTip.style.display = "block";
+  });
+
+  // 3. 手机屏幕旋转检测（优化体验）
+  window.addEventListener("orientationchange", () => {
+    if (gamePlayer.style.display === "block") {
+      // 横屏时调整iframe高度
+      if (window.orientation === 90 || window.orientation === -90) {
+        gameIframe.height = window.innerHeight - 100;
+      } else {
+        gameIframe.height = 350;
+      }
+    }
+  });
+
+  // 4. 初始化：适配手机屏幕尺寸
+  if (window.innerWidth < 768) {
+    // 手机端缩小卡片内边距，优化显示
+    gameCards.forEach(card => {
+      card.style.padding = "10px";
+    });
+  }
+</script>
+<!-- 模块结尾：GitHub博客专用经典小游戏合集（手机适配版） -->
+
+
+<!-- 模块开头：GitHub博客专用云游戏模块（和平精英+荒野大镖客+王者荣耀） -->
+<div style="width: 100%; max-width: 600px; margin: 25px auto; padding: 20px; border-radius: 12px; box-shadow: 0 3px 15px rgba(0,0,0,0.08); background: #ffffff; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+    <!-- 模块标题 -->
+    <h3 style="margin: 0 0 20px; font-size: 18px; color: #333; text-align: center;">
+        <span style="font-size: 22px; color: #ff5722;">🎮</span>
+        云游戏推荐（免下载）
+    </h3>
+    <!-- 游戏列表 -->
+    <div style="display: flex; flex - direction: column; gap: 16px;">
+        <!-- 和平精英 -->
+        <div style="border - radius: 10px; border: 1px solid #e0e0e0; padding: 16px; background: #f9f9f9; display: flex; flex - direction: column; gap: 10px;">
+            <h4 style="margin: 0; font - size: 16px; color: #333;">和平精英</h4>
+            <p style="margin: 0; font - size: 14px; color: #666;">和平精英云游戏让你无需下载庞大客户端，即可体验刺激的百人吃鸡竞技。</p>
+            <p style="margin: 0; font - size: 14px; color: #666;">游玩方式：可在手机应用商店下载<a href="https://start.qq.com/" target="_blank" style="color: #1e90ff;">腾讯START云游戏</a>，登录后搜索“和平精英”，点击即可秒玩。也可通过QQ浏览器搜索“腾讯先锋”，进入后找到和平精英云游戏版本进行游玩。</p>
+        </div>
+        <!-- 荒野大镖客 -->
+        <div style="border - radius: 10px; border: 1px solid #e0e0e0; padding: 16px; background: #f9f9f9; display: flex; flex - direction: column; gap: 10px;">
+            <h4 style="margin: 0; font - size: 16px; color: #333;">荒野大镖客</h4>
+            <p style="margin: 0; font - size: 14px; color: #666;">荒野大镖客云游戏可让你在手机上体验西部世界的魅力，无需担心设备配置问题。</p>
+            <p style="margin: 0; font - size: 14px; color: #666;">游玩方式：可通过<a href="https://www.haiyun.com/" target="_blank" style="color: #1e90ff;">海马云平台</a>，下载其客户端后搜索“荒野大镖客”，选择相应配置即可游玩。也可在微信中搜索“酷卡会”小程序，搜索“荒野大镖客”点击秒玩。</p>
+        </div>
+        <!-- 王者荣耀 -->
+        <div style="border - radius: 10px; border: 1px solid #e0e0e0; padding: 16px; background: #f9f9f9; display: flex; flex - direction: column; gap: 10px;">
+            <h4 style="margin: 0; font - size: 16px; color: #333;">王者荣耀</h4>
+            <p style="margin: 0; font - size: 14px; color: #666;">王者荣耀云游戏版让你随时随地开启峡谷对战，无需下载游戏本体，节省手机空间。</p>
+            <p style="margin: 0; font - size: 14px; color: #666;">游玩方式：可在抖音搜索“王者荣耀”，点击“查看”，进入详情页后点击“立即玩”。也可前往<a href="https://sj.qq.com/" target="_blank" style="color: #1e90ff;">应用宝官网</a>，点击“云游戏”，搜索“王者荣耀”，选择微信或QQ登录后即可游玩。</p>
+        </div>
+    </div>
+</div>
+
+<!-- 模块开头：GitHub博客专用 赤色要塞 经典云游戏模块（手机适配） -->
+<div style="width: 100%; max-width: 580px; margin: 25px auto; padding: 22px; border-radius: 12px; box-shadow: 0 3px 18px rgba(0,0,0,0.08); background: #ffffff; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+  <!-- 模块标题 -->
+  <div style="margin-bottom: 25px; text-align: center;">
+    <h3 style="margin: 0 0 8px; font-size: 19px; color: #333; display: inline-flex; align-items: center; gap: 10px;">
+      <span style="font-size: 24px; color: #d93636;">🚌🔥</span>
+      赤色要塞：FC四强的营救传奇
+    </h3>
+    <p style="margin: 0; font-size: 13px; color: #65676b;">手机免下载即玩，重温80年代热血战场</p>
+  </div>
+
+  <!-- 游戏核心信息（折叠展开式，手机触摸友好） -->
+  <div class="game-module" style="border-radius: 10px; overflow: hidden; border: 1px solid #f0f0f0; background: #fff;">
+    <!-- 卡片头部（点击展开/收起） -->
+    <div class="module-header" style="padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; background: linear-gradient(135deg, #d93636 0%, #b32424 100%); color: #fff;">
+      <div style="display: flex; align-items: center; gap: 12px;">
+        <div style="width: 42px; height: 42px; border-radius: 8px; background: #fff; display: flex; align-items: center; justify-content: center;">
+          <span style="font-size: 18px; color: #d93636; font-weight: bold;">赤</span>
+        </div>
+        <h4 style="margin: 0; font-size: 16px;">游戏档案 & 即玩指南</h4>
+      </div>
+      <span class="module-arrow" style="font-size: 18px; transition: transform 0.3s;">▼</span>
+    </div>
+
+    <!-- 卡片内容（默认隐藏） -->
+    <div class="module-content" style="padding: 0 20px; max-height: 0; overflow: hidden; transition: all 0.3s;">
+      <div style="padding: 20px 0; border-top: 1px solid #f5f5f5;">
+        <!-- 核心背景 -->
+        <div style="margin-bottom: 18px;">
+          <p style="margin: 0 0 10px; font-size: 14px; color: #333; font-weight: 500;">🎬 经典背景</p>
+          <p style="margin: 0; font-size: 13px; color: #65676b; line-height: 1.6;">
+            1988年由KONAMI推出的FC射击游戏，与魂斗罗、绿色兵团、沙罗曼蛇并称为"FC四强"。原名"Jackal"（豺狼部队），因日本磁碟机版定名"赤い要塞"而被国内玩家熟知。剧情围绕解救被俘战友展开，玩家需驾驶吉普车深入敌后，突破封锁完成营救使命[[__LINK_ICON]](https://m.baike.com/wiki/%E8%B5%A4%E8%89%B2%E8%A6%81%E5%A1%9E/19451897?baike_source=doubao&f_link_type=f_linkinlinenote&flow_extra=eyJpbmxpbmVfZGlzcGxheV9wb3NpdGlvbiI6MCwiZG9jX3Bvc2l0aW9uIjoxLCJkb2NfaWQiOiI5YzFmMzBjMDE4ZTdkM2U0LWRmOTA3ZWM5YTFmYjA2MjAifQ%3D%3D)。
+          </p>
+        </div>
+
+        <!-- 核心玩法 -->
+        <div style="margin-bottom: 18px;">
+          <p style="margin: 0 0 10px; font-size: 14px; color: #333; font-weight: 500;">🎮 核心玩法</p>
+          <ul style="margin: 0 0 0 15px; padding-left: 8px; font-size: 13px; color: #65676b; line-height: 1.6;">
+            <li>驾驶吉普车作战，初始武器为手雷+机枪，解救闪光人质或拾取隐藏道具可升级至四向开花火箭弹，火力覆盖范围大幅提升；</li>
+            <li>涵盖丛林、港口、沼泽等6大特色关卡，每个场景有专属敌人（如潜艇、激光器、武装直升机）和地形挑战，关尾需击败重型坦克、石像群等Boss[[__LINK_ICON]](https://m.baike.com/wiki/%E8%B5%A4%E8%89%B2%E8%A6%81%E5%A1%9E/19451897?baike_source=doubao&f_link_type=f_linkinlinenote&flow_extra=eyJpbmxpbmVfZGlzcGxheV9wb3NpdGlvbiI6MCwiZG9jX3Bvc2l0aW9uIjoyLCJkb2NfaWQiOiI5YzFmMzBjMDE4ZTdkM2U0LWRmOTA3ZWM5YTFmYjA2MjAifQ%3D%3D)；</li>
+            <li>支持双人同玩，需配合护送人质至直升机撤离，送满12名人质可直接解锁最高级武器，当年常因抢人质、躲轰炸成为伙伴间的难忘回忆。</li>
+          </ul>
+        </div>
+
+        <!-- 手机免下载游玩方式 -->
+        <div style="margin-bottom: 18px;">
+          <p style="margin: 0 0 10px; font-size: 14px; color: #333; font-weight: 500;">📱 即玩教程（免下载）</p>
+          <ul style="margin: 0 0 0 15px; padding-left: 8px; font-size: 13px; color: #65676b; line-height: 1.6;">
+            <li>云游戏直达：复制链接到手机浏览器打开，无需下载直接进入游戏，支持安卓与iOS系统，适配触屏操作（<a href="https://wx.qisi67.cn/main?" target="_blank" style="color: #1e90ff;">点击进入云游戏</a>）；</li>
+            <li>模拟器备选：在应用商店搜索“悟饭游戏厅”，安装后搜索“赤色要塞”，选择FC版本即可在线游玩，可自定义虚拟按键位置；</li>
+            <li>注意事项：云游戏需稳定网络（建议5G/Wi-Fi），模拟器版本支持存档功能，可随时暂停续玩。</li>
+          </ul>
+        </div>
+
+        <!-- 经典记忆点 -->
+        <div>
+          <p style="margin: 0 0 10px; font-size: 14px; color: #333; font-weight: 500;">💡 情怀亮点</p>
+          <p style="margin: 0; font-size: 13px; color: #65676b; line-height: 1.6;">
+            作为容量仅128K的经典之作，其热血BGM一响起就能唤醒童年记忆，虽无续作，但手机端的云玩与模拟版本让这款营救传奇得以延续，低配手机也能流畅重温热血战场。
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 折叠展开交互脚本 -->
+<script>
+document.querySelector('.module-header').addEventListener('click', function() {
+  const content = document.querySelector('.module-content');
+  const arrow = document.querySelector('.module-arrow');
+  if (content.style.maxHeight === '0px' || content.style.maxHeight === '') {
+    content.style.maxHeight = content.scrollHeight + 'px';
+    content.style.padding = '20px';
+    arrow.style.transform = 'rotate(180deg)';
+  } else {
+    content.style.maxHeight = '0px';
+    content.style.padding = '0 20px';
+    arrow.style.transform = 'rotate(0)';
+  }
+});
+</script>
+
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>央视直播模块</title>
+    <style>
+       .channel - container {
+            display: flex;
+            flex - wrap: wrap;
+            justify - content: space - around;
+        }
+
+       .channel {
+            width: 48%;
+            margin - bottom: 20px;
+            border: 1px solid #ccc;
+            border - radius: 8px;
+            overflow: hidden;
+            box - shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+       .channel - title {
+            background - color: #0056b3;
+            color: white;
+            text - align: center;
+            padding: 10px;
+            font - size: 18px;
+        }
+
+       .video - container {
+            position: relative;
+            padding - top: 56.25%;
+            /* 保持16:9的宽高比 */
+        }
+
+       .video - container video {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object - fit: cover;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="channel - container">
+        <!-- CCTV - 1模块 -->
+        <div class="channel">
+            <div class="channel - title">CCTV - 1 综合</div>
+            <div class="video - container">
+                <video controls autoplay muted>
+                    <source src="http://ottrrs.hl.chinamobile.com/PLTV/88888888/224/3221225603/index.m3u8"
+                        type="application/x - mpegURL">
+                    你的浏览器不支持播放该视频。
+                </video>
+            </div>
+        </div>
+        <!-- CCTV - 3模块 -->
+        <div class="channel">
+            <div class="channel - title">CCTV - 3 综艺</div>
+            <div class="video - container">
+                <video controls autoplay muted>
+                    <source src="http://ottrrs.hl.chinamobile.com/PLTV/88888888/224/3221226328/index.m3u8"
+                        type="application/x - mpegURL">
+                    你的浏览器不支持播放该视频。
+                </video>
+            </div>
+        </div>
+        <!-- CCTV - 6模块 -->
+        <div class="channel">
+            <div class="channel - title">CCTV - 6 电影</div>
+            <div class="video - container">
+                <video controls autoplay muted>
+                    <source src="http://ottrrs.hl.chinamobile.com/PLTV/88888888/224/3221226010/index.m3u8"
+                        type="application/x - mpegURL">
+                    你的浏览器不支持播放该视频。
+                </video>
+            </div>
+        </div>
+        <!-- CCTV - 8模块 -->
+        <div class="channel">
+            <div class="channel - title">CCTV - 8 电视剧</div>
+            <div class="video - container">
+                <video controls autoplay muted>
+                    <source src="http://ottrrs.hl.chinamobile.com/PLTV/88888888/224/3221226382/index.m3u8"
+                        type="application/x - mpegURL">
+                    你的浏览器不支持播放该视频。
+                </video>
+            </div>
+        </div>
+        <!-- CCTV - 13模块 -->
+        <div class="channel">
+            <div class="channel - title">CCTV - 13 新闻</div>
+            <div class="video - container">
+                <video controls autoplay muted>
+                    <source src="http://ottrrs.hl.chinamobile.com/PLTV/88888888/224/3221226414/index.m3u8"
+                        type="application/x - mpegURL">
+                    你的浏览器不支持播放该视频。
+                </video>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>
+
+
+<!-- 模块开头：GitHub博客专用虎牙直播播放器 -->
+<div style="width: 100%; max-width: 1000px; margin: 25px auto; border-radius: 8px; overflow: hidden; box-shadow: 0 3px 12px rgba(0,0,0,0.05); background: #ffffff;">
+  <!-- 虎牙直播配置区（直接修改下方ID/链接即可） -->
+  <script>
+    // 👇 核心配置：填写虎牙直播间ID或完整链接（二选一，ID优先）
+    const huyaLiveConfig = {
+      liveRoomId: "11342412", // 虎牙直播间数字ID（示例：660000，可从直播间URL获取）
+      liveRoomUrl: "" // 虎牙直播间完整链接（示例：https://www.huya.com/660000，若填了ID则此参数无效）
+    };
+
+    // 自动生成有效直播链接
+    function getValidHuyaUrl() {
+      if (huyaLiveConfig.liveRoomId) {
+        return `https://www.huya.com/${huyaLiveConfig.liveRoomId}`;
+      }
+      return huyaLiveConfig.liveRoomUrl || "https://www.huya.com/";
+    }
+  </script>
+
+  <!-- 加载状态提示 -->
+  <div id="huyaLoading" style="text-align: center; padding: 30px; background: #fafafa; color: #666; font-size: 15px;">
+    正在加载虎牙直播...
+  </div>
+
+  <!-- 直播播放器主体 -->
+  <iframe
+    id="huyaLivePlayer"
+    src=""
+    width="100%"
+    height="600"
+    frameborder="0"
+    scrolling="no"
+    allowfullscreen="true"
+    style="display: none; border: none;"
+    title="虎牙直播间播放"
+  ></iframe>
+</div>
+
+<script>
+  // 页面加载完成后初始化播放器
+  document.addEventListener("DOMContentLoaded", function() {
+    const liveUrl = getValidHuyaUrl();
+    const player = document.getElementById("huyaLivePlayer");
+    const loadingTip = document.getElementById("huyaLoading");
+
+    // 校验配置有效性
+    if (!liveUrl.includes("huya.com")) {
+      loadingTip.textContent = "配置错误：请填写有效的虎牙直播间ID或链接！";
+      loadingTip.style.color = "#ff4d4f";
+      return;
+    }
+
+    // 加载直播画面
+    player.src = liveUrl;
+
+    // 监听播放器加载状态
+    player.onload = function() {
+      player.style.display = "block";
+      loadingTip.style.display = "none";
+    };
+
+    // 加载超时处理（防止一直显示加载中）
+    setTimeout(() => {
+      if (player.style.display === "none") {
+        loadingTip.textContent = "直播加载超时，可能是直播间未开播或网络问题";
+        loadingTip.style.color = "#ff7a45";
+      }
+    }, 10000);
+  });
+</script>
+<!-- 模块结尾：GitHub博客专用虎牙直播播放器 -->
+
+
 
 
 	
