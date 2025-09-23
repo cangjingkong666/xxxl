@@ -2040,6 +2040,159 @@ document.addEventListener('DOMContentLoaded', () => {
 </script>
 
 
+<!-- 模块开头：GitHub博客-Telegram Bot免登录聊天（点击必响应版） -->
+<div style="width: 100%; max-width: 600px; margin: 20px auto; padding: 20px; border-radius: 8px; background: #fff; box-shadow: 0 2px 10px rgba(0,0,0,0.05); font-family: -apple-system, BlinkMacSystemFont, sans-serif;">
+  <h3 style="margin: 0 0 15px; font-size: 17px; color: #333; display: flex; align-items: center; gap: 8px;">
+    <span style="color: #0088cc;">💬</span> 与Bot聊天（免登录）
+  </h3>
+
+  <!-- 聊天记录区 -->
+  <div id="chatBox" style="height: 350px; border: 1px solid #eee; border-radius: 6px; padding: 12px; overflow-y: auto; background: #fafafa; margin-bottom: 15px; display: flex; flex-direction: column; gap: 10px;">
+    <div style="max-width: 80%; align-self: flex-start; background: #e8f4f8; padding: 8px 12px; border-radius: 8px 8px 8px 2px; font-size: 14px; color: #333;">
+      <span style="font-weight: 500; margin-right: 5px;">Bot：</span>点击发送按钮就能给我发消息～
+    </div>
+  </div>
+
+  <!-- 输入区 -->
+  <div style="display: flex; flex-direction: column; gap: 10px;">
+    <input 
+      type="text" 
+      id="userName" 
+      placeholder="你的昵称（可选）" 
+      style="padding: 10px; border: 1px solid #eee; border-radius: 6px; font-size: 14px;"
+    >
+    <textarea 
+      id="userMsg" 
+      placeholder="输入消息..." 
+      style="padding: 10px; border: 1px solid #eee; border-radius: 6px; min-height: 80px; resize: none; font-size: 14px; font-family: inherit;"
+    ></textarea>
+    <!-- 用最简单的按钮，去掉所有可能影响点击的样式 -->
+    <button 
+      id="sendBtn" 
+      style="padding: 12px; border: none; border-radius: 6px; background: #0088cc; color: #fff; font-size: 14px; cursor: pointer;"
+      onclick="sendUserMsg()"
+    >发送消息</button>
+    <div id="tip" style="font-size: 12px; color: #ff4d4f; text-align: center; margin-top: 5px;"></div>
+  </div>
+</div>
+
+<!-- 直接写在HTML里的JS，避免加载顺序问题 -->
+<script>
+  // 配置信息（确认正确）
+  const BOT_TOKEN = "8430958771:AAG4bkt9cR5_ZTXgeM3MeH7oSODpMjM6wJs";
+  const CHAT_ID = "6562518027";
+  let lastMsgId = 0;
+
+  // 发送消息函数（全局函数，确保能被按钮调用）
+  function sendUserMsg() {
+    // 1. 先获取所有元素，确保拿到值
+    const userName = document.getElementById("userName").value || "匿名访客";
+    const userMsg = document.getElementById("userMsg").value.trim();
+    const tip = document.getElementById("tip");
+    const sendBtn = document.getElementById("sendBtn");
+
+    // 2. 先给用户反馈，证明点击已响应
+    tip.textContent = "正在发送...";
+    tip.style.color = "#666";
+    sendBtn.disabled = true;
+    sendBtn.textContent = "发送中";
+
+    // 3. 验证消息非空
+    if (!userMsg) {
+      tip.textContent = "❌ 消息不能为空！";
+      tip.style.color = "#ff4d4f";
+      sendBtn.disabled = false;
+      sendBtn.textContent = "发送消息";
+      return;
+    }
+
+    // 4. 发送消息（用最简单的fetch，不嵌套复杂逻辑）
+    fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        chat_id: CHAT_ID,
+        text: `【${userName}】(${new Date().toLocaleTimeString()})：\n${userMsg}`
+      })
+    })
+    .then(res => res.json())
+    .then(data => {
+      if (data.ok) {
+        // 发送成功：添加消息到聊天框
+        const chatBox = document.getElementById("chatBox");
+        const userMsgDiv = document.createElement("div");
+        userMsgDiv.style.cssText = "max-width: 80%; align-self: flex-end; background: #0088cc; padding: 8px 12px; border-radius: 8px 8px 2px 8px; font-size: 14px; color: #fff;";
+        userMsgDiv.innerHTML = `<span style="font-weight: 500; margin-right: 5px;">${userName}：</span>${userMsg}`;
+        chatBox.appendChild(userMsgDiv);
+        chatBox.scrollTop = chatBox.scrollHeight;
+
+        // 清空输入+提示成功
+        document.getElementById("userMsg").value = "";
+        tip.textContent = "✅ 消息已发送！我会尽快回复～";
+        tip.style.color = "#00b42a";
+        lastMsgId = data.result.message_id;
+
+        // 启动3次刷新（3分钟一次）
+        let refreshCount = 0;
+        const refreshTimer = setInterval(() => {
+          fetch(`https://api.telegram.org/bot${BOT_TOKEN}/getUpdates?chat_id=${CHAT_ID}&offset=${lastMsgId + 1}`)
+          .then(res => res.json())
+          .then(data => {
+            if (data.ok && data.result.length > 0) {
+              data.result.forEach(update => {
+                if (update.message?.from?.is_bot && update.message.text) {
+                  const botMsgDiv = document.createElement("div");
+                  botMsgDiv.style.cssText = "max-width: 80%; align-self: flex-start; background: #e8f4f8; padding: 8px 12px; border-radius: 8px 8px 8px 2px; font-size: 14px; color: #333;";
+                  botMsgDiv.innerHTML = `<span style="font-weight: 500; margin-right: 5px;">Bot：</span>${update.message.text}`;
+                  chatBox.appendChild(botMsgDiv);
+                  chatBox.scrollTop = chatBox.scrollHeight;
+                  clearInterval(refreshTimer);
+                  tip.textContent = "✅ 已收到我的回复～";
+                }
+              });
+            }
+          });
+
+          refreshCount++;
+          if (refreshCount >= 3) {
+            clearInterval(refreshTimer);
+            tip.textContent = "⏹️ 已停止刷新，未收到回复可重新发送～";
+          }
+        }, 180000); // 3分钟=180000毫秒
+      } else {
+        tip.textContent = `❌ 发送失败：${data.description}`;
+      }
+    })
+    .catch(err => {
+      tip.textContent = `❌ 网络错误：${err.message}`;
+    })
+    .finally(() => {
+      // 无论成功失败，恢复按钮
+      sendBtn.disabled = false;
+      sendBtn.textContent = "发送消息";
+    });
+  }
+
+  // 额外绑定Enter键发送（双重保障）
+  document.getElementById("userMsg").addEventListener("keydown", function(e) {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      sendUserMsg();
+    }
+  });
+
+  // 页面加载完成后，给按钮加个点击反馈（证明JS已加载）
+  window.onload = function() {
+    const sendBtn = document.getElementById("sendBtn");
+    sendBtn.addEventListener("mouseover", function() {
+      this.style.background = "#0077bb";
+    });
+    sendBtn.addEventListener("mouseout", function() {
+      this.style.background = "#0088cc";
+    });
+    console.log("聊天模块JS已加载，点击发送按钮即可触发～");
+  };
+</script>
 
 
 
