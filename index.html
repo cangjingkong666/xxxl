@@ -1021,66 +1021,34 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
-
-<!-- GitHub博客音乐播放器模块 -->
+<!-- GitHub博客音乐播放器模块（歌词链接版） -->
 <div class="music-player" style="width: 100%; max-width: 900px; margin: 30px auto; padding: 24px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); background: #fff; font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;">
   <!-- 播放器标题 -->
   <h3 style="margin: 0 0 20px; font-size: 18px; color: #2d3748; text-align: center;">音乐播放器</h3>
 
-  <!-- 核心配置：歌曲列表（可自定义修改歌曲、封面、歌词） -->
+  <!-- 核心配置：歌曲列表（歌词改为LRC链接，可直接替换） -->
   <script>
     const musicPlayerData = [
       {
         title: "光年之外",
         artist: "邓紫棋",
-        audioUrl: "https://freetyst.nf.migu.cn/public/product9th/product1/2023/03/2118/2023032118443122407.mp3?channelid=0", // 公开音频URL
-        coverUrl: "https://picsum.photos/id/1/120/120", // 专辑封面
-        lrc: `[00:00.00]作词：邓紫棋
-[00:01.00]作曲：邓紫棋
-[00:25.30]感受停在我发端的指尖
-[00:29.00]如何瞬间 冻结时间
-[00:32.70]记住望着我坚定的双眼
-[00:36.40]也许已经 没有明天
-[00:40.10]面对浩瀚的星海
-[00:43.80]我们微小得像尘埃
-[00:47.50]漂浮在 一片无奈
-[00:54.90]缘分让我们相遇乱世以外
-[00:58.60]命运却要我们危难中相爱
-[01:02.30]也许未来遥远在光年之外
-[01:06.00]我愿守候未知里为你等待` // 歌词文本（支持完整LRC格式）
+        audioUrl: "https://lu-sycdn.kuwo.cn/be8a87d5df5f5bfb5ecf63eec5ff2522/68d2579f/resource/a2/25/64/2640583885.aac", // 音频URL
+        coverUrl: "https://picsum.photos/id/1/120/120", // 专辑封面URL
+        lrcUrl: "https://example.com/lrc/guangnianzhiwai.lrc" // 歌词LRC文件URL（替换为你的链接）
       },
       {
         title: "起风了",
         artist: "买辣椒也用券",
         audioUrl: "https://freetyst.nf.migu.cn/public/product9th/product1/2022/08/05/2022080515334615707.mp3?channelid=0",
         coverUrl: "https://picsum.photos/id/2/120/120",
-        lrc: `[00:00.00]作词：米果
-[00:01.00]作曲：高桥优
-[00:22.50]这一路上走走停停
-[00:25.87]顺着少年漂流的痕迹
-[00:29.24]迈出车站的前一刻
-[00:32.61]竟有些犹豫
-[00:35.98]不禁笑这近乡情怯
-[00:39.35]仍无可避免
-[00:42.72]而长野的天
-[00:44.46]依旧那么暖
-[00:46.19]风吹起了从前`
+        lrcUrl: "https://example.com/lrc/qifengle.lrc" // 歌词LRC文件URL
       },
       {
         title: "小幸运",
         artist: "田馥甄",
         audioUrl: "https://freetyst.nf.migu.cn/public/product9th/product1/2022/08/05/2022080515334615707.mp3?channelid=0",
         coverUrl: "https://picsum.photos/id/3/120/120",
-        lrc: `[00:00.00]作词：徐世珍/吴辉福
-[00:01.00]作曲：JerryC
-[00:15.00]我听见雨滴落在青青草地
-[00:18.80]我听见远方下课钟声响起
-[00:22.60]可是我没有听见你的声音
-[00:26.30]认真 呼唤我姓名
-[00:30.10]爱上你的时候还不懂感情
-[00:33.80]离别了才觉得刻骨 铭心
-[00:37.60]为什么没有发现遇见了你
-[00:41.30]是生命最好的事情`
+        lrcUrl: "https://example.com/lrc/xiaoxingyun.lrc" // 歌词LRC文件URL
       }
     ];
     let currentTrackIndex = 0; // 当前播放歌曲索引
@@ -1169,7 +1137,7 @@ document.addEventListener('DOMContentLoaded', () => {
   </div>
 </div>
 
-<!-- 播放器功能JS -->
+<!-- 播放器功能JS（新增歌词链接加载逻辑） -->
 <script>
   // 1. 获取DOM元素
   const audio = new Audio();
@@ -1191,7 +1159,22 @@ document.addEventListener('DOMContentLoaded', () => {
     return `${min.toString().padStart(2, "0")}:${sec.toString().padStart(2, "0")}`;
   }
 
-  // 3. 歌词解析：将LRC文本转为「时间+歌词」对象数组
+  // 3. 新增：加载LRC歌词文件（通过链接获取歌词内容）
+  async function loadLrcFromUrl(lrcUrl) {
+    try {
+      // 发送请求获取LRC文件内容
+      const response = await fetch(lrcUrl);
+      if (!response.ok) throw new Error("歌词文件加载失败");
+      const lrcText = await response.text(); // 读取LRC文本
+      return parseLrcText(lrcText); // 解析歌词并返回
+    } catch (err) {
+      console.error("歌词加载错误：", err);
+      lrcContainer.innerHTML = `<div style="color: #ff4d4f;">歌词加载失败</div>`;
+      return []; // 加载失败返回空数组
+    }
+  }
+
+  // 4. 歌词解析：将LRC文本转为「时间+歌词」对象数组（逻辑不变）
   function parseLrcText(lrcText) {
     const lrcLines = lrcText.split("\n");
     const lrcArr = [];
@@ -1214,7 +1197,7 @@ document.addEventListener('DOMContentLoaded', () => {
     return lrcArr.sort((a, b) => a.time - b.time); // 按时间排序
   }
 
-  // 4. 更新歌词显示：随音乐进度高亮当前歌词
+  // 5. 更新歌词显示：随音乐进度高亮当前歌词（逻辑不变）
   function updateLrcDisplay(currentTime) {
     if (parsedLrc.length === 0) {
       lrcContainer.innerHTML = `<div>暂无歌词</div>`;
@@ -1254,22 +1237,22 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // 5. 加载指定歌曲
-  function loadTrack(index) {
+  // 6. 加载指定歌曲（修改歌词加载逻辑：从链接获取）
+  async function loadTrack(index) {
     const track = musicPlayerData[index];
     if (!track) return;
 
-    // 更新播放器信息
+    // 更新播放器基础信息
     audio.src = track.audioUrl;
     playerTitle.textContent = track.title;
     playerArtist.textContent = `—— ${track.artist}`;
     playerCover.src = track.coverUrl || "https://via.placeholder.com/120/edf2f7/718096?text=No+Cover";
     
-    // 解析歌词
-    parsedLrc = parseLrcText(track.lrc || "");
-    updateLrcDisplay(0);
+    // 新增：从LRC链接加载并解析歌词
+    parsedLrc = await loadLrcFromUrl(track.lrcUrl);
+    updateLrcDisplay(0); // 初始化歌词显示
 
-    // 更新歌曲列表选中状态
+    // 更新歌曲列表选中状态（逻辑不变）
     const trackItems = trackList.querySelectorAll("li");
     trackItems.forEach((item, i) => {
       item.style.cssText = i === index 
@@ -1277,21 +1260,22 @@ document.addEventListener('DOMContentLoaded', () => {
         : "padding: 10px 8px; margin-bottom: 8px; border-radius: 6px; background: #f7fafc; color: #718096; cursor: pointer;";
     });
 
-    // 加载并播放
+    // 加载并播放（逻辑不变）
     audio.load();
-    audio.play().then(() => {
+    try {
+      await audio.play();
       playPauseBtn.textContent = "⏸";
       playerCover.classList.add("cover-rotating"); // 封面开始旋转
-    }).catch(err => {
+    } catch (err) {
       console.error("播放失败：", err);
       playPauseBtn.textContent = "▶";
       playerCover.classList.remove("cover-rotating");
-    });
+    }
 
     currentTrackIndex = index;
   }
 
-  // 6. 初始化歌曲列表
+  // 7. 初始化歌曲列表（逻辑不变）
   function initTrackList() {
     trackList.innerHTML = "";
     musicPlayerData.forEach((track, index) => {
@@ -1300,12 +1284,12 @@ document.addEventListener('DOMContentLoaded', () => {
       li.style.cssText = index === 0 
         ? "padding: 10px 8px; margin-bottom: 8px; border-radius: 6px; background: #edf2f7; color: #2d3748; cursor: pointer;" 
         : "padding: 10px 8px; margin-bottom: 8px; border-radius: 6px; background: #f7fafc; color: #718096; cursor: pointer;";
-      li.addEventListener("click", () => loadTrack(index));
+      li.addEventListener("click", () => loadTrack(index)); // 点击加载对应歌曲
       trackList.appendChild(li);
     });
   }
-  // 7. 播放控制事件监听
-  // 播放/暂停按钮
+
+  // 8. 播放控制事件监听（逻辑不变）
   playPauseBtn.addEventListener("click", () => {
     if (audio.paused) {
       audio.play().then(() => {
@@ -1319,13 +1303,266 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // 上一首按钮
   prevTrackBtn.addEventListener("click", () => {
     currentTrackIndex = (currentTrackIndex - 1 + musicPlayerData.length) % musicPlayerData.length;
     loadTrack(currentTrackIndex);
   });
 
-  // 下一首按钮
+  nextTrackBtn.addEventListener("click", () => {
+    currentTrackIndex = (currentTrackIndex + 1) % musicPlayerData.length;
+    loadTrack(currentTrackIndex);
+  });
+
+  playerProgress.addEventListener("input",<!-- GitHub博客音乐播放器模块（歌词链接版） -->
+<div class="music-player" style="width: 100%; max-width: 900px; margin: 30px auto; padding: 24px; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.08); background: #fff; font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;">
+  <!-- 播放器标题 -->
+  <h3 style="margin: 0 0 20px; font-size: 18px; color: #2d3748; text-align: center;">音乐播放器</h3>
+
+  <!-- 核心配置：歌曲列表（歌词用LRC链接，直接替换即可） -->
+  <script>
+    const musicPlayerData = [
+      {
+        title: "光年之外",
+        artist: "邓紫棋",
+        audioUrl: "https://lu-sycdn.kuwo.cn/be8a87d5df5f5bfb5ecf63eec5ff2522/68d2579f/resource/a2/25/64/2640583885.aac",
+        coverUrl: "https://picsum.photos/id/1/120/120",
+        lrcUrl: "https://example.com/lrc/guangnianzhiwai.lrc" // 替换为你的LRC文件链接
+      },
+      {
+        title: "起风了",
+        artist: "买辣椒也用券",
+        audioUrl: "https://freetyst.nf.migu.cn/public/product9th/product1/2022/08/05/2022080515334615707.mp3?channelid=0",
+        coverUrl: "https://picsum.photos/id/2/120/120",
+        lrcUrl: "https://example.com/lrc/qifengle.lrc" // 替换为你的LRC文件链接
+      },
+      {
+        title: "小幸运",
+        artist: "田馥甄",
+        audioUrl: "https://freetyst.nf.migu.cn/public/product9th/product1/2022/08/05/2022080515334615707.mp3?channelid=0",
+        coverUrl: "https://picsum.photos/id/3/120/120",
+        lrcUrl: "https://example.com/lrc/xiaoxingyun.lrc" // 替换为你的LRC文件链接
+      }
+    ];
+    let currentTrackIndex = 0;
+    let parsedLrc = [];
+  </script>
+
+  <!-- 播放器主体：封面+控制区 -->
+  <div style="display: flex; align-items: center; gap: 20px; flex-wrap: wrap; margin-bottom: 24px;">
+    <div style="position: relative; width: 120px; height: 120px; border-radius: 8px; overflow: hidden; flex-shrink: 0; margin: 0 auto;">
+      <img id="playerCover" src="" alt="专辑封面" style="width: 100%; height: 100%; object-fit: cover;">
+      <style>
+        @keyframes coverRotate {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+        .cover-rotating { animation: coverRotate 15s linear infinite; }
+      </style>
+    </div>
+
+    <div style="flex: 1; min-width: 250px;">
+      <h4 id="playerTitle" style="margin: 0 0 8px; font-size: 16px; color: #2d3748;">--</h4>
+      <p id="playerArtist" style="margin: 0 0 16px; font-size: 14px; color: #718096;">--</p>
+
+      <div style="width: 100%; margin-bottom: 12px;">
+        <input 
+          id="playerProgress" 
+          type="range" 
+          min="0" 
+          max="100" 
+          value="0" 
+          style="width: 100%; height: 4px; appearance: none; background: #edf2f7; border-radius: 2px; outline: none;"
+        >
+        <style>
+          #playerProgress::-webkit-slider-thumb {
+            appearance: none;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: #4a5568;
+            cursor: pointer;
+          }
+          #playerProgress::-moz-range-thumb {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: #4a5568;
+            cursor: pointer;
+            border: none;
+          }
+        </style>
+      </div>
+
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <span id="playerTime" style="font-size: 12px; color: #718096;">00:00 / 00:00</span>
+        <div style="display: flex; gap: 16px; align-items: center;">
+          <button id="prevTrack" style="background: none; border: none; font-size: 22px; color: #4a5568; cursor: pointer;">⏮</button>
+          <button id="playPause" style="background: #4a5568; color: #fff; border: none; width: 44px; height: 44px; border-radius: 50%; font-size: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center;">▶</button>
+          <button id="nextTrack" style="background: none; border: none; font-size: 22px; color: #4a5568; cursor: pointer;">⏭</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 歌曲列表 + 歌词显示 -->
+  <div style="display: flex; gap: 24px; flex-wrap: wrap;">
+    <div style="flex: 1; min-width: 250px; max-height: 280px; overflow-y: auto;">
+      <h5 style="margin: 0 0 12px; font-size: 14px; color: #4a5568; padding-bottom: 8px; border-bottom: 1px solid #edf2f7;">歌曲列表</h5>
+      <ul id="trackList" style="margin: 0; padding: 0; list-style: none;"></ul>
+    </div>
+
+    <div style="flex: 1; min-width: 250px; border: 1px solid #edf2f7; border-radius: 8px; padding: 16px; max-height: 280px; overflow-y: auto; background: #f7fafc;">
+      <h5 style="margin: 0 0 12px; font-size: 14px; color: #4a5568; text-align: center; padding-bottom: 8px; border-bottom: 1px solid #edf2f7;">歌词</h5>
+      <div id="lrcContainer" style="width: 100%; text-align: center; line-height: 2; font-size: 15px; color: #718096;">
+        <div>点击播放歌曲显示歌词</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 播放器完整功能JS -->
+<script>
+  // 1. 获取DOM元素
+  const audio = new Audio();
+  const playerCover = document.getElementById("playerCover");
+  const playerTitle = document.getElementById("playerTitle");
+  const playerArtist = document.getElementById("playerArtist");
+  const playerProgress = document.getElementById("playerProgress");
+  const playerTime = document.getElementById("playerTime");
+  const playPauseBtn = document.getElementById("playPause");
+  const prevTrackBtn = document.getElementById("prevTrack");
+  const nextTrackBtn = document.getElementById("nextTrack");
+  const trackList = document.getElementById("trackList");
+  const lrcContainer = document.getElementById("lrcContainer");
+
+  // 2. 时间格式化工具
+  function formatTime(seconds) {
+    const min = Math.floor(seconds / 60);
+    const sec = Math.floor(seconds % 60);
+    return `${min.toString().padStart(2, "0")}:${sec.toString().padStart(2, "0")}`;
+  }
+
+  // 3. 从LRC链接加载歌词
+  async function loadLrcFromUrl(lrcUrl) {
+    try {
+      const response = await fetch(lrcUrl);
+      if (!response.ok) throw new Error("加载失败");
+      const lrcText = await response.text();
+      return parseLrcText(lrcText);
+    } catch (err) {
+      lrcContainer.innerHTML = `<div style="color: #ff4d4f;">歌词加载失败</div>`;
+      return [];
+    }
+  }
+
+  // 4. 解析LRC文本
+  function parseLrcText(lrcText) {
+    const lrcArr = [];
+    const timeReg = /\[(.*?)\]/;
+    lrcText.split("\n").forEach(line => {
+      if (!line.trim()) return;
+      const timeMatch = line.match(timeReg);
+      if (!timeMatch) return;
+      const [min, sec] = timeMatch[1].split(":");
+      const totalSec = parseFloat(min) * 60 + parseFloat(sec);
+      const text = line.replace(timeReg, "").trim();
+      if (text) lrcArr.push({ time: totalSec, text });
+    });
+    return lrcArr.sort((a, b) => a.time - b.time);
+  }
+
+  // 5. 更新歌词显示
+  function updateLrcDisplay(currentTime) {
+    if (parsedLrc.length === 0) {
+      lrcContainer.innerHTML = `<div>暂无歌词</div>`;
+      return;
+    }
+    let currentLrcIndex = -1;
+    for (let i = 0; i < parsedLrc.length; i++) {
+      const isLast = i === parsedLrc.length - 1;
+      if (parsedLrc[i].time <= currentTime && (isLast || parsedLrc[i + 1].time > currentTime)) {
+        currentLrcIndex = i;
+        break;
+      }
+    }
+    let lrcHtml = "";
+    const start = Math.max(0, currentLrcIndex - 2);
+    const end = Math.min(parsedLrc.length - 1, currentLrcIndex + 2);
+    for (let i = start; i <= end; i++) {
+      const style = i === currentLrcIndex ? "color: #2d3748; font-weight: 500;" : "color: #718096;";
+      lrcHtml += `<div style="${style}">${parsedLrc[i].text}</div>`;
+    }
+    lrcContainer.innerHTML = lrcHtml;
+    if (currentLrcIndex !== -1) {
+      const currentItem = lrcContainer.querySelectorAll("div")[currentLrcIndex - start];
+      lrcContainer.scrollTop = currentItem.offsetTop - lrcContainer.clientHeight / 2 + currentItem.clientHeight / 2;
+    }
+  }
+
+  // 6. 加载指定歌曲
+  async function loadTrack(index) {
+    const track = musicPlayerData[index];
+    if (!track) return;
+    // 更新基础信息
+    audio.src = track.audioUrl;
+    playerTitle.textContent = track.title;
+    playerArtist.textContent = `—— ${track.artist}`;
+    playerCover.src = track.coverUrl || "https://via.placeholder.com/120/edf2f7/718096?text=No+Cover";
+    // 加载歌词
+    parsedLrc = await loadLrcFromUrl(track.lrcUrl);
+    updateLrcDisplay(0);
+    // 更新列表选中状态
+    trackList.querySelectorAll("li").forEach((item, i) => {
+      item.style.cssText = i === index 
+        ? "padding: 10px 8px; margin-bottom: 8px; border-radius: 6px; background: #edf2f7; color: #2d3748; cursor: pointer;" 
+        : "padding: 10px 8px; margin-bottom: 8px; border-radius: 6px; background: #f7fafc; color: #718096; cursor: pointer;";
+    });
+    // 播放歌曲
+    audio.load();
+    try {
+      await audio.play();
+      playPauseBtn.textContent = "⏸";
+      playerCover.classList.add("cover-rotating");
+    } catch (err) {
+      playPauseBtn.textContent = "▶";
+      playerCover.classList.remove("cover-rotating");
+    }
+    currentTrackIndex = index;
+  }
+
+  // 7. 初始化歌曲列表
+  function initTrackList() {
+    trackList.innerHTML = "";
+    musicPlayerData.forEach((track, index) => {
+      const li = document.createElement("li");
+      li.textContent = `${index + 1}. ${track.title} - ${track.artist}`;
+      li.style.cssText = index === 0 
+        ? "padding: 10px 8px; margin-bottom: 8px; border-radius: 6px; background: #edf2f7; color: #2d3748; cursor: pointer;" 
+        : "padding: 10px 8px; margin-bottom: 8px; border-radius: 6px; background: #f7fafc; color: #718096; cursor: pointer;";
+      li.addEventListener("click", () => loadTrack(index));
+      trackList.appendChild(li);
+    });
+  }
+
+  // 8. 播放控制事件监听（补全部分）
+  playPauseBtn.addEventListener("click", () => {
+    if (audio.paused) {
+      audio.play().then(() => {
+        playPauseBtn.textContent = "⏸";
+        playerCover.classList.add("cover-rotating");
+      }).catch(err => console.error("播放失败：", err));
+    } else {
+      audio.pause();
+      playPauseBtn.textContent = "▶";
+      playerCover.classList.remove("cover-rotating");
+    }
+  });
+
+  prevTrackBtn.addEventListener("click", () => {
+    currentTrackIndex = (currentTrackIndex - 1 + musicPlayerData.length) % musicPlayerData.length;
+    loadTrack(currentTrackIndex);
+  });
+
   nextTrackBtn.addEventListener("click", () => {
     currentTrackIndex = (currentTrackIndex + 1) % musicPlayerData.length;
     loadTrack(currentTrackIndex);
@@ -1335,287 +1572,31 @@ document.addEventListener('DOMContentLoaded', () => {
   playerProgress.addEventListener("input", () => {
     const progress = (playerProgress.value / 100) * audio.duration;
     audio.currentTime = progress;
-    updateLrcDisplay(progress); // 拖动时同步更新歌词
+    updateLrcDisplay(progress);
   });
 
-  // 音频进度实时更新（时间+进度条+歌词）
+  // 音频进度实时更新
   audio.addEventListener("timeupdate", () => {
     const progressPercent = (audio.currentTime / audio.duration) * 100;
     playerProgress.value = progressPercent;
-    // 更新时间显示（当前时间/总时长）
     playerTime.textContent = `${formatTime(audio.currentTime)} / ${formatTime(audio.duration || 0)}`;
-    // 实时更新歌词
     updateLrcDisplay(audio.currentTime);
   });
 
-  // 音频播放结束自动切下一首
+  // 播放结束自动切歌
   audio.addEventListener("ended", () => {
     currentTrackIndex = (currentTrackIndex + 1) % musicPlayerData.length;
     loadTrack(currentTrackIndex);
   });
 
-  // 8. 页面加载完成初始化
+  // 页面初始化
   window.addEventListener("DOMContentLoaded", () => {
-    initTrackList(); // 生成歌曲列表
-    loadTrack(0);    // 加载默认第一首歌曲
+    initTrackList();
+    loadTrack(0);
   });
 </script>
 
 
-
-
-
-<!-- Telegram Bot博客对话框（无后端版） -->
-<div class="tg-bot-chat" style="width: 100%; max-width: 600px; margin: 30px auto; padding: 20px; border-radius: 10px; box-shadow: 0 3px 15px rgba(0,0,0,0.06); background: #fff; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
-  <h3 style="margin: 0 0 20px; font-size: 18px; color: #2d3748; text-align: center;">联系我的Telegram Bot</h3>
-
-  <!-- 1. 核心配置：替换为你的Bot信息（必须改！） -->
-  <script>
-    const BOT_CONFIG = {
-      botToken: "8430958771:AAG4bkt9cR5_ZTXgeM3MeH7oSODpMjM6wJs", // 你的Bot令牌（@BotFather创建后获取）
-      adminChatId: "6562518027", // 你的Telegram用户ID（@userinfobot获取）
-      updateOffset: 0, // 消息更新偏移量（用于获取新回复）
-      refreshInterval: 60000, // 1分钟刷新一次（毫秒）
-    };
-
-    // 全局状态
-    let messageList = []; // 存储消息记录（用户+Bot）
-    let refreshTimer = null; // 刷新定时器
-    let isWaitingReply = false; // 是否等待Bot回复
-  </script>
-
-  <!-- 2. 消息显示区（仅刷新此区域） -->
-  <div id="messageContainer" style="height: 400px; border: 1px solid #f0f0f0; border-radius: 8px; padding: 15px; margin-bottom: 15px; overflow-y: auto; background: #fafafa; display: flex; flex-direction: column; gap: 12px;">
-    <div class="system-msg" style="text-align: center; color: #999; font-size: 14px;">
-      无需登录，消息将同步到Bot，回复会实时显示
-    </div>
-  </div>
-
-  <!-- 3. 用户发送消息区 -->
-  <div style="display: flex; gap: 10px;">
-    <textarea 
-      id="userInput" 
-      placeholder="输入消息...（支持Shift+Enter换行）" 
-      style="flex: 1; padding: 12px; border: 1px solid #e0e0e0; border-radius: 8px; resize: none; min-height: 60px; font-size: 14px;"
-    ></textarea>
-    <button 
-      id="sendBtn" 
-      style="padding: 0 16px; border: none; border-radius: 8px; background: #0088cc; color: #fff; font-size: 14px; cursor: pointer; white-space: nowrap;"
-    >
-      发送
-    </button>
-  </div>
-  <p id="statusTip" style="margin: 8px 0 0; font-size: 12px; color: #ff4d4f; text-align: right;"></p>
-</div>
-
-<!-- 4. 核心功能JS（无后端直接调用Telegram API） -->
-<script>
-  // 获取DOM元素
-  const messageContainer = document.getElementById("messageContainer");
-  const userInput = document.getElementById("userInput");
-  const sendBtn = document.getElementById("sendBtn");
-  const statusTip = document.getElementById("statusTip");
-
-  // ------------------------------
-  // 功能1：渲染消息（区分用户/Bot，仅刷新消息区）
-  // ------------------------------
-  function renderMessages() {
-    // 清空消息区（保留系统提示）
-    messageContainer.innerHTML = `
-      <div class="system-msg" style="text-align: center; color: #999; font-size: 14px; margin-bottom: 10px;">
-        无需登录，消息将同步到Bot，回复会实时显示
-      </div>
-    `;
-
-    // 渲染每条消息
-    messageList.forEach(msg => {
-      const msgCard = document.createElement("div");
-      // 用户消息：右对齐+蓝色背景
-      if (msg.role === "user") {
-        msgCard.style.cssText = "max-width: 75%; margin-left: auto; padding: 10px 15px; border-radius: 12px 12px 0 12px; background: #0088cc; color: #fff; font-size: 14px;";
-        msgCard.innerHTML = `
-          <div style="font-size: 12px; margin-bottom: 4px;">你 · ${formatTime(msg.time)}</div>
-          <div>${escapeHtml(msg.content)}</div>
-        `;
-      } 
-      // Bot回复：左对齐+灰色背景
-      else if (msg.role === "bot") {
-        msgCard.style.cssText = "max-width: 75%; margin-right: auto; padding: 10px 15px; border-radius: 12px 12px 12px 0; background: #e0e0e0; color: #333; font-size: 14px;";
-        msgCard.innerHTML = `
-          <div style="font-size: 12px; margin-bottom: 4px;">Bot回复 · ${formatTime(msg.time)}</div>
-          <div>${escapeHtml(msg.content)}</div>
-        `;
-      }
-      messageContainer.appendChild(msgCard);
-    });
-
-    // 滚动到最新消息
-    messageContainer.scrollTop = messageContainer.scrollHeight;
-  }
-
-  // ------------------------------
-  // 功能2：用户发送消息到Bot（直接调用Telegram API）
-  // ------------------------------
-  async function sendUserMessage() {
-    const content = userInput.value.trim();
-    if (!content) {
-      statusTip.textContent = "请输入消息内容！";
-      return;
-    }
-
-    // 禁用按钮防止重复发送
-    sendBtn.disabled = true;
-    sendBtn.textContent = "发送中...";
-    statusTip.textContent = "";
-
-    try {
-      // 1. 构造用户消息（带时间戳）
-      const userMsg = {
-        role: "user",
-        content: content,
-        time: new Date().getTime()
-      };
-      messageList.push(userMsg);
-      renderMessages(); // 实时显示用户消息
-      userInput.value = ""; // 清空输入框
-
-      // 2. 调用Telegram API发送消息到管理员（你的ChatId）
-      const telegramApiUrl = `https://api.telegram.org/bot${BOT_CONFIG.botToken}/sendMessage`;
-      const response = await fetch(telegramApiUrl, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          chat_id: BOT_CONFIG.adminChatId,
-          text: `【博客用户消息】\n时间：${formatTime(userMsg.time)}\n内容：${content}`,
-          reply_markup: { force_reply: true } // 强制回复（方便管理员直接回复）
-        })
-      });
-
-      const result = await response.json();
-      if (!result.ok) throw new Error("消息发送失败，请重试");
-
-      // 3. 发送成功：启动刷新（等待Bot回复）
-      statusTip.textContent = "发送成功！等待回复（1分钟刷新一次）";
-      isWaitingReply = true;
-      startRefreshTimer();
-
-    } catch (err) {
-      statusTip.textContent = `发送失败：${err.message}`;
-      messageList.pop(); // 移除失败的消息
-      renderMessages();
-    } finally {
-      // 恢复按钮
-      sendBtn.disabled = false;
-      sendBtn.textContent = "发送";
-    }
-  }
-
-  // ------------------------------
-  // 功能3：自动刷新获取Bot回复（仅刷新消息区，收到回复停止）
-  // ------------------------------
-  async function fetchBotReplies() {
-    try {
-      // 调用Telegram API获取最新消息更新
-      const telegramApiUrl = `https://api.telegram.org/bot${BOT_CONFIG.botToken}/getUpdates`;
-      const response = await fetch(`${telegramApiUrl}?offset=${BOT_CONFIG.updateOffset + 1}&limit=10`);
-      const result = await response.json();
-
-      if (!result.ok || !result.result.length) return; // 无新消息
-
-      // 筛选管理员对用户消息的回复
-      const newReplies = [];
-      result.result.forEach(update => {
-        // 更新偏移量（避免重复获取旧消息）
-        BOT_CONFIG.updateOffset = Math.max(BOT_CONFIG.updateOffset, update.update_id);
-
-        const msg = update.message;
-        // 条件：是管理员发送的、是回复消息、回复的是博客用户消息
-        if (
-          msg.from.id.toString() === BOT_CONFIG.adminChatId && 
-          msg.reply_to_message && 
-          msg.reply_to_message.text.includes("【博客用户消息】")
-        ) {
-          newReplies.push({
-            role: "bot",
-            content: msg.text,
-            time: msg.date * 1000 // Telegram时间戳转毫秒
-          });
-        }
-      });
-
-      // 有新回复：添加到消息列表+停止刷新
-      if (newReplies.length) {
-        messageList.push(...newReplies);
-        renderMessages(); // 仅刷新消息区显示回复
-        stopRefreshTimer(); // 收到回复停止刷新
-        isWaitingReply = false;
-        statusTip.textContent = "已收到Bot回复！";
-      }
-
-    } catch (err) {
-      console.error("获取回复失败：", err);
-      statusTip.textContent = "刷新失败，1分钟后重试...";
-    }
-  }
-
-  // ------------------------------
-  // 工具函数：启动/停止刷新定时器
-  // ------------------------------
-  function startRefreshTimer() {
-    stopRefreshTimer(); // 先停止旧定时器
-    // 立即刷新一次，再按间隔刷新
-    fetchBotReplies();
-    refreshTimer = setInterval(fetchBotReplies, BOT_CONFIG.refreshInterval);
-  }
-
-  function stopRefreshTimer() {
-    if (refreshTimer) {
-      clearInterval(refreshTimer);
-      refreshTimer = null;
-    }
-  }
-
-  // ------------------------------
-  // 辅助工具函数：时间格式化、HTML转义（防XSS）
-  // ------------------------------
-  function formatTime(timestamp) {
-    const date = new Date(timestamp);
-    return `${date.getFullYear()}-${(date.getMonth()+1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')} ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
-  }
-
-  function escapeHtml(unsafe) {
-    // 转义HTML特殊字符，防止恶意代码注入
-    return unsafe
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;")
-      .replace(/"/g, "&quot;")
-      .replace(/'/g, "&#039;")
-      .replace(/\n/g, "<br>"); // 换行转<br>，保持格式
-  }
-
-  // ------------------------------
-  // 事件绑定：发送按钮点击、回车发送
-  // ------------------------------
-  sendBtn.addEventListener("click", sendUserMessage);
-  userInput.addEventListener("keydown", (e) => {
-    // Shift+Enter换行，Enter直接发送
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      sendUserMessage();
-    }
-  });
-
-  // ------------------------------
-  // 页面初始化：渲染初始消息，清理定时器
-  // ------------------------------
-  window.addEventListener("DOMContentLoaded", () => {
-    renderMessages();
-  });
-
-  // 页面关闭时停止刷新
-  window.addEventListener("beforeunload", stopRefreshTimer);
-</script>
 
 
 
