@@ -203,6 +203,198 @@ a.admin-btn:hover { background-color: #b71c1c; }
 <h2>悠哉的Telegram</h2>
 <a href="https://t.me/fuchenyouzaibot" target="_blank" class="telegram-btn">联系 Telegram</a>
 </article>	
+
+<!-- 本地天气 & 智能日历模块 -->
+<article>
+<h2>本地天气 & 智能日历</h2>
+<div class="horizontal-module">
+  <!-- 本地天气（含24小时趋势） -->
+  <div class="module-item" style="min-width: 220px;">
+    <p style="font-weight: 600;">本地天气</p>
+    <p id="local-weather" style="font-size: 16px; margin: 8px 0;">加载中...</p>
+    <!-- 温度趋势提示 -->
+    <p id="temp-trend" style="font-size: 13px; color: #27ae60; margin: 5px 0;"></p>
+    <!-- 详细天气信息 -->
+    <p id="weather-details" style="font-size: 12px; color: #666; line-height: 1.4;">
+      日照: 加载中<br>
+      湿度: 加载中 | 风力: 加载中<br>
+      紫外线: 加载中
+    </p>
+  </div>
+  <!-- 公历（自动获取当前日期） -->
+  <div class="module-item">
+    <p style="font-weight: 600;">公历</p>
+    <p id="solar-date" style="font-size: 15px; margin: 8px 0;">2025年09月22日</p>
+    <p id="current-weekday" style="font-size: 13px; color: #666;">星期一</p>
+  </div>
+  <!-- 农历（自动计算，无需手动维护） -->
+  <div class="module-item">
+    <p style="font-weight: 600;">农历</p>
+    <p id="lunar-date" style="font-size: 15px; margin: 8px 0;">乙巳年八月初一</p>
+    <p id="lunar-term" style="font-size: 13px; color: #e74c3c;">白露</p>
+  </div>
+  <!-- 生肖&倒计时 -->
+  <div class="module-item">
+    <p style="font-weight: 600;">当前生肖</p>
+    <p id="current-zodiac" style="font-size: 18px; margin: 8px 0;">蛇</p>
+    <p style="font-weight: 600; margin-top: 15px;">距离下次节气</p>
+    <p id="term-countdown" style="font-size: 13px; color: #666;">加载中...</p>
+  </div>
+</article>
+
+<!-- 天气&日历模块CSS（独立完整，含趋势提示样式） -->
+<style>
+.horizontal-module {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+  align-items: flex-start;
+  margin-top: 15px;
+  padding: 15px;
+  background: #f9f9f9;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  width: 100%;
+  box-sizing: border-box;
+}
+.horizontal-module .module-item {
+  flex: 1;
+  min-width: 150px;
+  text-align: center;
+  padding: 5px 0;
+}
+#local-weather {
+  color: #2c3e50;
+  font-weight: 500;
+}
+#temp-trend {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+}
+#temp-trend::before {
+  content: "📈"; /* 温度上升图标，会动态切换 */
+}
+article {
+  background: #fff;
+  margin: 0 auto 20px;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  max-width: 1200px;
+  width: 100%;
+  box-sizing: border-box;
+}
+h2 { 
+  color: #4CAF50; 
+  margin-top: 0; 
+  border-bottom: 1px solid #eee;
+  padding-bottom: 8px;
+}
+</style>
+
+<!-- 天气&日历模块依赖外部JS（无需申请API，直接引用） -->
+<script src="https://cdn.jsdelivr.net/npm/lunar-calendar@1.0.3/dist/lunar.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/weather-js@2.0.0/dist/weather.min.js"></script>
+
+<!-- 天气&日历模块优化版JS（自动日期+天气趋势+节气倒计时） -->
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  // 1. 天气模块：含24小时温度趋势
+  const loadWeatherWithTrend = () => {
+    weather.find({ search: 'auto', degreeType: 'C' }, (err, result) => {
+      if (err || !result || result.length === 0) {
+        document.getElementById('local-weather').textContent = '获取失败';
+        document.getElementById('weather-details').innerHTML = '日照: --<br>湿度: -- | 风力: --<br>紫外线: --';
+        return;
+      }
+
+      const current = result[0].current;
+      const forecast = result[0].forecast;
+      const todayForecast = forecast[0];
+      const tomorrowForecast = forecast[1];
+
+      // 主天气信息（温度+天气状态）
+      const mainWeather = `${current.temperature}°C | ${current.skytext}`;
+      document.getElementById('local-weather').textContent = mainWeather;
+
+      // 温度趋势判断（今日vs明日最高温）
+      const todayMaxTemp = parseInt(todayForecast.high);
+      const tomorrowMaxTemp = parseInt(tomorrowForecast.high);
+      const trendEl = document.getElementById('temp-trend');
+      if (tomorrowMaxTemp > todayMaxTemp) {
+        trendEl.textContent = `明日升温至${tomorrowMaxTemp}°C`;
+        trendEl.style.color = '#e74c3c';
+        trendEl.style.setProperty('::before', 'content: "📈"');
+      } else if (tomorrowMaxTemp < todayMaxTemp) {
+        trendEl.textContent = `明日降温至${tomorrowMaxTemp}°C`;
+        trendEl.style.color = '#3498db';
+        trendEl.style.setProperty('::before', 'content: "📉"');
+      } else {
+        trendEl.textContent = `明日温度持平（${tomorrowMaxTemp}°C）`;
+        trendEl.style.color = '#27ae60';
+        trendEl.style.setProperty('::before', 'content: "📊"');
+      }
+
+      // 详细天气信息（含日照、湿度等）
+      const sunInfo = `${todayForecast.sunrise} - ${todayForecast.sunset}`;
+      const details = `日照: ${sunInfo}<br>湿度: ${current.humidity}% | 风力: ${current.windspeed}<br>紫外线: ${todayForecast.uv || '中等'}`;
+      document.getElementById('weather-details').innerHTML = details;
+    });
+  };
+  // 初始加载+每小时刷新
+  loadWeatherWithTrend();
+  setInterval(loadWeatherWithTrend, 3600000);
+
+  // 2. 日历模块：自动获取当前日期+农历+节气
+  const initSmartCalendar = () => {
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = today.getMonth() + 1;
+    const day = today.getDate();
+
+    // 公历日期+星期
+    const solarDate = `${year}年${month.toString().padStart(2, '0')}月${day.toString().padStart(2, '0')}日`;
+    document.getElementById('solar-date').textContent = solarDate;
+    const weekdays = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'];
+    document.getElementById('current-weekday').textContent = weekdays[today.getDay()];
+
+    // 农历+节气（依赖lunar-calendar库）
+    const lunarData = LunarCalendar.solar2lunar(year, month, day);
+    const lunarYear = lunarData.lunarYear + '年';
+    const lunarMonth = lunarData.lunarMonth === 1 ? '正月' : 
+                       lunarData.lunarMonth === 12 ? '腊月' : 
+                       lunarData.lunarMonth + '月';
+    const lunarDay = lunarData.lunarDay;
+    document.getElementById('lunar-date').textContent = `${lunarYear}${lunarMonth}${lunarDay}`;
+    // 显示当前节气（无则隐藏）
+    const lunarTerm = lunarData.term;
+    document.getElementById('lunar-term').textContent = lunarTerm || '无节气';
+    document.getElementById('lunar-term').style.display = lunarTerm ? 'block' : 'none';
+
+    // 生肖（自动计算，无需手动更新）
+    const zodiacs = ['鼠', '牛', '虎', '兔', '龙', '蛇', '马', '羊', '猴', '鸡', '狗', '猪'];
+    const zodiacIndex = (year - 4) % 12;
+    document.getElementById('current-zodiac').textContent = zodiacs[zodiacIndex < 0 ? zodiacIndex + 12 : zodiacIndex];
+
+    // 下次节气倒计时（简单计算）
+    const nextTerm = LunarCalendar.getNextTerm(year, month, day);
+    if (nextTerm) {
+      const nextTermDate = new Date(nextTerm.year, nextTerm.month - 1, nextTerm.day);
+      const diffTime = nextTermDate - today;
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      document.getElementById('term-countdown').textContent = `${nextTerm.term}（${diffDays}天后）`;
+    } else {
+      document.getElementById('term-countdown').textContent = '明年再见';
+    }
+  };
+  // 初始化日历（每天更新一次即可）
+  initSmartCalendar();
+  setInterval(initSmartCalendar, 86400000);
+});
+</script>
+
 	
 <!-- 文章内容 -->
 <article>
@@ -856,3 +1048,4 @@ modeBtn.addEventListener('click', () => {
 </script>
 </body>
 </html>
+
