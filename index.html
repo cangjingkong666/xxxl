@@ -1861,7 +1861,7 @@ document.addEventListener('DOMContentLoaded', () => {
 <!-- 模块结尾：GitHub博客专用Telegram Bot前端直连消息模块（免登录） -->
 
 
-<!-- 模块开头：GitHub博客专用Telegram Bot双向聊天模块（免登录） -->
+<!-- 模块开头：GitHub博客专用Telegram Bot双向聊天模块（免登录·无刷新） -->
 <div style="width: 100%; max-width: 700px; margin: 25px auto; padding: 22px; border-radius: 10px; box-shadow: 0 3px 15px rgba(0,0,0,0.06); background: #ffffff; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
   <!-- 头部信息：图标+标题+安全提示 -->
   <div style="margin-bottom: 20px; border-bottom: 1px solid #f5f5f5; padding-bottom: 15px;">
@@ -1886,8 +1886,8 @@ document.addEventListener('DOMContentLoaded', () => {
       </div>
     </div>
 
-    <!-- 消息输入表单 -->
-    <form id="tg-bot-form" style="display: flex; flex-direction: column; gap: 15px;">
+    <!-- 消息输入区域（用div替代form，彻底避免默认刷新） -->
+    <div id="message-input-area" style="display: flex; flex-direction: column; gap: 15px;">
       <!-- 访客联系信息（可选，方便Bot识别） -->
       <div>
         <label style="display: block; margin-bottom: 6px; font-size: 14px; color: #666;">你的昵称（可选）</label>
@@ -1906,14 +1906,12 @@ document.addEventListener('DOMContentLoaded', () => {
           id="message-content" 
           placeholder="请输入要发送的内容..." 
           style="width: 100%; min-height: 100px; padding: 12px; border: 1px solid #ddd; border-radius: 6px; resize: vertical; box-sizing: border-box; font-family: inherit; font-size: 14px;"
-          required
         ></textarea>
       </div>
 
       <!-- 发送按钮与状态反馈 -->
       <div style="display: flex; justify-content: space-between; align-items: center;">
         <button 
-          type="submit" 
           id="send-btn" 
           style="padding: 12px 24px; background: #0088cc; color: #ffffff; border: none; border-radius: 6px; cursor: pointer; font-size: 14px; transition: background 0.3s;"
         >
@@ -1921,7 +1919,7 @@ document.addEventListener('DOMContentLoaded', () => {
         </button>
         <div id="send-status" style="font-size: 14px; font-weight: 500;"></div>
       </div>
-    </form>
+    </div>
   </div>
 </div>
 
@@ -1937,7 +1935,6 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   // DOM元素获取
-  const form = document.getElementById("tg-bot-form");
   const sendBtn = document.getElementById("send-btn");
   const sendStatus = document.getElementById("send-status");
   const chatHistory = document.getElementById("chat-history");
@@ -1978,12 +1975,27 @@ document.addEventListener('DOMContentLoaded', () => {
     chatHistory.scrollTop = chatHistory.scrollHeight;
   }
 
-  // 3. 发送消息给Bot
+  // 3. 发送消息给Bot（核心函数，无刷新逻辑）
   async function sendToTelegramBot() {
+    // 1. 验证消息不为空
+    const content = messageContent.value.trim();
+    if (!content) {
+      sendStatus.textContent = "❌ 消息不能为空！";
+      sendStatus.style.color = "#ff4d4f";
+      return;
+    }
+
     const { text, displayText } = getFormattedMessage();
     const apiUrl = `https://api.telegram.org/bot${TG_CONFIG.botToken}/sendMessage`;
 
     try {
+      // 2. 锁定按钮，防止重复发送
+      sendBtn.disabled = true;
+      sendBtn.style.opacity = "0.7";
+      sendBtn.textContent = "发送中...";
+      sendStatus.textContent = "";
+
+      // 3. 发送请求（无刷新核心：用fetch异步请求，不触发页面提交）
       const response = await fetch(apiUrl, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -1996,24 +2008,26 @@ document.addEventListener('DOMContentLoaded', () => {
 
       const data = await response.json();
       if (data.ok) {
-        // 发送成功：添加访客消息到页面
+        // 4. 发送成功：添加消息到页面+清空输入框
         addMessageToChat(displayText);
         messageContent.value = "";
         sendStatus.textContent = "✅ 发送成功！";
         sendStatus.style.color = "#008000";
-        // 更新最后一条消息ID（用于后续拉取回复）
+        // 更新最后一条消息ID，用于拉取回复
         lastMessageId = data.result.message_id;
-        return true;
       } else {
         sendStatus.textContent = "❌ 发送失败，请重试！";
         sendStatus.style.color = "#ff4d4f";
-        return false;
       }
     } catch (err) {
       console.error("发送错误：", err);
       sendStatus.textContent = "❌ 网络错误，请检查连接！";
       sendStatus.style.color = "#ff4d4f";
-      return false;
+    } finally {
+      // 5. 无论成功失败，都恢复按钮状态
+      sendBtn.disabled = false;
+      sendBtn.style.opacity = "1";
+      sendBtn.textContent = "发送消息";
     }
   }
 
@@ -2025,13 +2039,11 @@ document.addEventListener('DOMContentLoaded', () => {
       const response = await fetch(apiUrl);
       const data = await response.json();
       if (data.ok && data.result.length > 0) {
-        // 遍历新消息，筛选Bot的回复
+        // 遍历新消息，只显示Bot的回复
         data.result.forEach(update => {
           const message = update.message;
-          // 只显示Bot发送的消息（排除访客自己的消息）
           if (message.from.is_bot && message.text) {
             addMessageToChat(message.text, true);
-            // 更新最后一条消息ID，避免重复拉取
             lastMessageId = message.message_id;
           }
         });
@@ -2041,33 +2053,25 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // 5. 表单提交处理
-  form.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    // 重置状态提示
-    sendStatus.textContent = "";
-    // 锁定按钮防止重复发送
-    sendBtn.disabled = true;
-    sendBtn.style.opacity = "0.7";
-    sendBtn.textContent = "发送中...";
+  // 5. 绑定发送按钮点击事件（替代form提交，彻底避免刷新）
+  sendBtn.addEventListener("click", sendToTelegramBot);
 
-    await sendToTelegramBot();
-
-    // 恢复按钮状态
-    sendBtn.disabled = false;
-    sendBtn.style.opacity = "1";
-    sendBtn.textContent = "发送消息";
+  // 6. 可选：支持按Enter键发送（优化体验）
+  messageContent.addEventListener("keydown", (e) => {
+    // 按下Ctrl+Enter或纯Enter（避免换行时触发）
+    if ((e.ctrlKey && e.key === "Enter") || (e.key === "Enter" && !e.shiftKey)) {
+      e.preventDefault(); // 阻止默认换行/刷新
+      sendToTelegramBot();
+    }
   });
 
-  // 6. 页面加载后启动定时拉取回复
+  // 7. 页面加载后启动定时拉取回复
   window.addEventListener("DOMContentLoaded", () => {
-    // 首次加载立即拉取一次
-    fetchBotReplies();
-    // 之后每隔指定时间拉取一次
-    setInterval(fetchBotReplies, TG_CONFIG.pollInterval);
+    fetchBotReplies(); // 首次加载拉取一次
+    setInterval(fetchBotReplies, TG_CONFIG.pollInterval); // 定时拉取
   });
 </script>
-<!-- 模块结尾：GitHub博客专用Telegram Bot双向聊天模块（免登录） -->
+<!-- 模块结尾：GitHub博客专用Telegram Bot双向聊天模块（免登录·无刷新） -->
 
 
 
