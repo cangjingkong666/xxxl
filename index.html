@@ -1861,6 +1861,8 @@ document.addEventListener('DOMContentLoaded', () => {
 <!-- 模块结尾：GitHub博客专用Telegram Bot前端直连消息模块（免登录） -->
 
 
+
+
 <!-- 模块开头：GitHub博客-Telegram Bot免登录双向聊天（精准刷新版） -->
 <div style="width: 100%; max-width: 600px; margin: 20px auto; padding: 20px; border-radius: 8px; background: #fff; box-shadow: 0 2px 10px rgba(0,0,0,0.05); font-family: -apple-system, BlinkMacSystemFont, sans-serif;">
   <!-- 标题 -->
@@ -1905,40 +1907,55 @@ document.addEventListener('DOMContentLoaded', () => {
   let replyTimer = null;
   let refreshCount = 0;
   let lastMsgId = 0; // 避免重复拉取消息
+  const chatBox = document.getElementById("chatBox"); // 提前获取聊天框元素，避免重复查询
 
   // 初始加载Bot欢迎消息
   window.onload = function() {
     addMsgToChat("Bot", "你好！发送消息后，我会在3分钟内回复你（最多等3次刷新）～", true);
-    // 绑定发送按钮和Enter键事件
-    document.getElementById("sendBtn").onclick = sendUserMsg;
-    document.getElementById("userMsg").onkeydown = (e) => {
-      if (e.key === "Enter" && !e.shiftKey) {
-        e.preventDefault();
-        sendUserMsg();
-      }
-    };
+    // 绑定发送按钮和Enter键事件（确保绑定成功）
+    const sendBtn = document.getElementById("sendBtn");
+    const userMsg = document.getElementById("userMsg");
+    if (sendBtn) sendBtn.onclick = sendUserMsg;
+    if (userMsg) {
+      userMsg.onkeydown = (e) => {
+        if (e.key === "Enter" && !e.shiftKey) {
+          e.preventDefault();
+          sendUserMsg();
+        }
+      };
+    }
+    // 初始拉取一次历史回复（防止用户刚打开页面时错过已发的回复）
+    checkBotReply();
   };
 
-  // 1. 添加消息到聊天框
+  // 1. 添加消息到聊天框（核心：只操作聊天框元素，不刷新页面）
   function addMsgToChat(sender, content, isBot = false) {
-    const chatBox = document.getElementById("chatBox");
+    if (!chatBox) return; // 防止元素不存在导致报错
     const msgDiv = document.createElement("div");
     // 区分Bot（左）和用户（右）消息样式
     msgDiv.style.cssText = isBot 
-      ? "max-width: 80%; align-self: flex-start; background: #e8f4f8; padding: 8px 12px; border-radius: 8px 8px 8px 2px; font-size: 14px; color: #333;"
-      : "max-width: 80%; align-self: flex-end; background: #0088cc; padding: 8px 12px; border-radius: 8px 8px 2px 8px; font-size: 14px; color: #fff;";
-    msgDiv.innerHTML = `<span style="font-weight: 500; margin-right: 5px;">${sender}：</span>${content}`;
+      ? "max-width: 80%; align-self: flex-start; background: #e8f4f8; padding: 8px 12px; border-radius: 8px 8px 8px 2px; font-size: 14px; color: #333; word-break: break-all;"
+      : "max-width: 80%; align-self: flex-end; background: #0088cc; padding: 8px 12px; border-radius: 8px 8px 2px 8px; font-size: 14px; color: #fff; word-break: break-all;";
+    // 消息内容（转义特殊字符，避免HTML注入，同时确保显示正常）
+    const safeContent = content.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    msgDiv.innerHTML = `<span style="font-weight: 500; margin-right: 5px;">${sender}：</span>${safeContent}`;
     chatBox.appendChild(msgDiv);
-    // 自动滚动到底部
+    // 自动滚动到底部（确保用户看到最新消息）
     chatBox.scrollTop = chatBox.scrollHeight;
   }
 
-  // 2. 发送用户消息 + 启动回复刷新
+  // 2. 发送用户消息 + 启动回复刷新（全程无页面刷新，只更新模块内容）
   async function sendUserMsg() {
-    const userName = document.getElementById("userName").value || "匿名访客";
-    const userMsg = document.getElementById("userMsg").value.trim();
+    const userNameInput = document.getElementById("userName");
+    const userMsgInput = document.getElementById("userMsg");
     const tip = document.getElementById("tip");
     const sendBtn = document.getElementById("sendBtn");
+
+    // 验证元素存在性
+    if (!userMsgInput || !tip || !sendBtn) return;
+
+    const userName = userNameInput ? userNameInput.value || "匿名访客" : "匿名访客";
+    const userMsg = userMsgInput.value.trim();
 
     // 验证消息非空
     if (!userMsg) {
@@ -1951,248 +1968,120 @@ document.addEventListener('DOMContentLoaded', () => {
     sendBtn.disabled = true;
     sendBtn.textContent = "发送中...";
     tip.textContent = "";
+    tip.style.color = "#666";
 
     try {
-      // 格式化消息（带昵称和时间）
+      // 格式化消息（带昵称和时间，便于你在Telegram识别）
       const time = new Date().toLocaleTimeString("zh-CN", { hour: "2-digit", minute: "2-digit" });
       const fullMsg = `【${userName}】(${time})：\n${userMsg}`;
 
-      // 调用Telegram API发送消息
+      // 调用Telegram API发送消息（异步请求，不刷新页面）
       const res = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ chat_id: CHAT_ID, text: fullMsg }),
-        timeout: 8000
+        body: JSON.stringify({ 
+          chat_id: CHAT_ID, 
+          text: fullMsg,
+          disable_web_page_preview: true // 禁用链接预览，避免消息格式混乱
+        }),
+        timeout: 10000 // 延长超时时间，确保网络差时也能尝试发送
       });
 
       const data = await res.json();
       if (data.ok) {
-        // 发送成功：添加消息到聊天框+清空输入
+        // 发送成功：只更新聊天框和输入框，不影响页面其他内容
         addMsgToChat(userName, userMsg);
-        document.getElementById("userMsg").value = "";
+        if (userMsgInput) userMsgInput.value = "";
         tip.textContent = "✅ 消息已发送！我会在3分钟内回复（最多等3次）～";
         tip.style.color = "#00b42a";
-        // 更新最后一条消息ID（用户消息ID）
+        // 更新最后一条消息ID（用户消息ID，确保后续只拉取新回复）
         lastMsgId = data.result.message_id;
-        // 重置刷新状态，启动新的回复监听
+        // 重置刷新状态，启动新的回复监听（只针对当前模块）
         resetAndStartRefresh();
       } else {
-        throw new Error(data.description || "发送失败");
+        throw new Error(data.description || "发送失败，未知错误");
       }
     } catch (err) {
       tip.textContent = `❌ 发送失败：${err.message}`;
       tip.style.color = "#ff4d4f";
+      console.error("发送消息错误详情：", err); // 控制台打印详情，便于你排查
     } finally {
-      // 恢复按钮状态
+      // 无论成功失败，恢复按钮状态
       sendBtn.disabled = false;
       sendBtn.textContent = "发送消息";
     }
   }
 
-  // 3. 重置刷新状态 + 启动定时拉取回复
+  // 3. 重置刷新状态 + 启动定时拉取回复（只刷新聊天模块，不刷新页面）
   function resetAndStartRefresh() {
-    // 清除之前的定时器（避免重复）
-    if (replyTimer) clearInterval(replyTimer);
+    // 清除之前的定时器（避免多个定时器同时运行）
+    if (replyTimer) {
+      clearInterval(replyTimer);
+      replyTimer = null;
+    }
     // 重置刷新次数
     refreshCount = 0;
     // 立即拉取一次（防止错过即时回复）
     checkBotReply();
-    // 启动定时拉取（3分钟一次，最多3次）
+    // 启动定时拉取（3分钟一次，最多3次，只更新聊天框）
     replyTimer = setInterval(() => {
       checkBotReply();
-      // 刷新次数+1，达到3次则停止
       refreshCount++;
+      // 达到最大次数，停止刷新并提示用户
       if (refreshCount >= MAX_REFRESH_TIMES) {
         clearInterval(replyTimer);
+        replyTimer = null;
         addMsgToChat("Bot", "已停止刷新～若未收到回复，可重新发送消息联系我～", true);
+        const tip = document.getElementById("tip");
+        if (tip) tip.textContent = "⏹️ 已停止刷新，未收到回复可重新发送～";
       }
     }, REFRESH_INTERVAL);
   }
 
-  // 4. 拉取Bot的最新回复
+  // 4. 拉取Bot的最新回复（核心优化：精准拉取+只更新聊天框）
   async function checkBotReply() {
     try {
-      // 调用API拉取新消息（只拉取lastMsgId之后的）
-      const res = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/getUpdates?chat_id=${CHAT_ID}&offset=${lastMsgId + 1}`);
-      const data = await res.json();
+      // 调用API拉取新消息（只拉取lastMsgId之后的，避免重复显示）
+      const res = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/getUpdates`, {
+        method: "GET",
+        headers: { "Content-Type": "application/json" },
+        timeout: 10000
+      });
 
+      const data = await res.json();
       if (data.ok && data.result.length > 0) {
-        data.result.forEach(update => {
+        // 筛选出当前聊天的Bot回复（避免拉取到其他聊天的消息）
+        const targetReplies = data.result.filter(update => {
           const msg = update.message;
-          // 只处理Bot发送的文本回复
-          if (msg && msg.from.is_bot && msg.text) {
+          // 条件：是Bot发送的、属于目标Chat ID、消息ID大于上次记录的ID
+          return msg && msg.from.is_bot && msg.chat.id.toString() === CHAT_ID.toString() && msg.message_id > lastMsgId;
+        });
+
+        // 显示所有符合条件的回复
+        targetReplies.forEach(update => {
+          const msg = update.message;
+          if (msg.text) {
             addMsgToChat("Bot", msg.text, true);
-            // 更新最后一条消息ID（Bot回复ID）
+            // 更新最后一条消息ID（确保下次只拉取更新的回复）
             lastMsgId = msg.message_id;
-            // 收到回复后，停止后续刷新
-            if (replyTimer) {
-              clearInterval(replyTimer);
-              addMsgToChat("Bot", "已收到我的回复，刷新已停止～", true);
-            }
           }
         });
+
+        // 若收到回复，停止后续刷新
+        if (targetReplies.length > 0 && replyTimer) {
+          clearInterval(replyTimer);
+          replyTimer = null;
+          const tip = document.getElementById("tip");
+          if (tip) tip.textContent = "✅ 已收到我的回复～";
+        }
       }
     } catch (err) {
-      console.log("拉取回复出错：", err);
-      // 出错不影响用户，仅控制台打印
+      console.error("拉取回复错误详情：", err); // 控制台打印详情，便于你排查
+      // 出错不影响用户，不显示错误提示（避免用户困惑）
     }
   }
 </script>
 
-
-<!-- 模块开头：GitHub博客-Telegram Bot免登录聊天（点击必响应版） -->
-<div style="width: 100%; max-width: 600px; margin: 20px auto; padding: 20px; border-radius: 8px; background: #fff; box-shadow: 0 2px 10px rgba(0,0,0,0.05); font-family: -apple-system, BlinkMacSystemFont, sans-serif;">
-  <h3 style="margin: 0 0 15px; font-size: 17px; color: #333; display: flex; align-items: center; gap: 8px;">
-    <span style="color: #0088cc;">💬</span> 与Bot聊天（免登录）
-  </h3>
-
-  <!-- 聊天记录区 -->
-  <div id="chatBox" style="height: 350px; border: 1px solid #eee; border-radius: 6px; padding: 12px; overflow-y: auto; background: #fafafa; margin-bottom: 15px; display: flex; flex-direction: column; gap: 10px;">
-    <div style="max-width: 80%; align-self: flex-start; background: #e8f4f8; padding: 8px 12px; border-radius: 8px 8px 8px 2px; font-size: 14px; color: #333;">
-      <span style="font-weight: 500; margin-right: 5px;">Bot：</span>点击发送按钮就能给我发消息～
-    </div>
-  </div>
-
-  <!-- 输入区 -->
-  <div style="display: flex; flex-direction: column; gap: 10px;">
-    <input 
-      type="text" 
-      id="userName" 
-      placeholder="你的昵称（可选）" 
-      style="padding: 10px; border: 1px solid #eee; border-radius: 6px; font-size: 14px;"
-    >
-    <textarea 
-      id="userMsg" 
-      placeholder="输入消息..." 
-      style="padding: 10px; border: 1px solid #eee; border-radius: 6px; min-height: 80px; resize: none; font-size: 14px; font-family: inherit;"
-    ></textarea>
-    <!-- 用最简单的按钮，去掉所有可能影响点击的样式 -->
-    <button 
-      id="sendBtn" 
-      style="padding: 12px; border: none; border-radius: 6px; background: #0088cc; color: #fff; font-size: 14px; cursor: pointer;"
-      onclick="sendUserMsg()"
-    >发送消息</button>
-    <div id="tip" style="font-size: 12px; color: #ff4d4f; text-align: center; margin-top: 5px;"></div>
-  </div>
-</div>
-
-<!-- 直接写在HTML里的JS，避免加载顺序问题 -->
-<script>
-  // 配置信息（确认正确）
-  const BOT_TOKEN = "8430958771:AAG4bkt9cR5_ZTXgeM3MeH7oSODpMjM6wJs";
-  const CHAT_ID = "6562518027";
-  let lastMsgId = 0;
-
-  // 发送消息函数（全局函数，确保能被按钮调用）
-  function sendUserMsg() {
-    // 1. 先获取所有元素，确保拿到值
-    const userName = document.getElementById("userName").value || "匿名访客";
-    const userMsg = document.getElementById("userMsg").value.trim();
-    const tip = document.getElementById("tip");
-    const sendBtn = document.getElementById("sendBtn");
-
-    // 2. 先给用户反馈，证明点击已响应
-    tip.textContent = "正在发送...";
-    tip.style.color = "#666";
-    sendBtn.disabled = true;
-    sendBtn.textContent = "发送中";
-
-    // 3. 验证消息非空
-    if (!userMsg) {
-      tip.textContent = "❌ 消息不能为空！";
-      tip.style.color = "#ff4d4f";
-      sendBtn.disabled = false;
-      sendBtn.textContent = "发送消息";
-      return;
-    }
-
-    // 4. 发送消息（用最简单的fetch，不嵌套复杂逻辑）
-    fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        chat_id: CHAT_ID,
-        text: `【${userName}】(${new Date().toLocaleTimeString()})：\n${userMsg}`
-      })
-    })
-    .then(res => res.json())
-    .then(data => {
-      if (data.ok) {
-        // 发送成功：添加消息到聊天框
-        const chatBox = document.getElementById("chatBox");
-        const userMsgDiv = document.createElement("div");
-        userMsgDiv.style.cssText = "max-width: 80%; align-self: flex-end; background: #0088cc; padding: 8px 12px; border-radius: 8px 8px 2px 8px; font-size: 14px; color: #fff;";
-        userMsgDiv.innerHTML = `<span style="font-weight: 500; margin-right: 5px;">${userName}：</span>${userMsg}`;
-        chatBox.appendChild(userMsgDiv);
-        chatBox.scrollTop = chatBox.scrollHeight;
-
-        // 清空输入+提示成功
-        document.getElementById("userMsg").value = "";
-        tip.textContent = "✅ 消息已发送！我会尽快回复～";
-        tip.style.color = "#00b42a";
-        lastMsgId = data.result.message_id;
-
-        // 启动3次刷新（3分钟一次）
-        let refreshCount = 0;
-        const refreshTimer = setInterval(() => {
-          fetch(`https://api.telegram.org/bot${BOT_TOKEN}/getUpdates?chat_id=${CHAT_ID}&offset=${lastMsgId + 1}`)
-          .then(res => res.json())
-          .then(data => {
-            if (data.ok && data.result.length > 0) {
-              data.result.forEach(update => {
-                if (update.message?.from?.is_bot && update.message.text) {
-                  const botMsgDiv = document.createElement("div");
-                  botMsgDiv.style.cssText = "max-width: 80%; align-self: flex-start; background: #e8f4f8; padding: 8px 12px; border-radius: 8px 8px 8px 2px; font-size: 14px; color: #333;";
-                  botMsgDiv.innerHTML = `<span style="font-weight: 500; margin-right: 5px;">Bot：</span>${update.message.text}`;
-                  chatBox.appendChild(botMsgDiv);
-                  chatBox.scrollTop = chatBox.scrollHeight;
-                  clearInterval(refreshTimer);
-                  tip.textContent = "✅ 已收到我的回复～";
-                }
-              });
-            }
-          });
-
-          refreshCount++;
-          if (refreshCount >= 3) {
-            clearInterval(refreshTimer);
-            tip.textContent = "⏹️ 已停止刷新，未收到回复可重新发送～";
-          }
-        }, 180000); // 3分钟=180000毫秒
-      } else {
-        tip.textContent = `❌ 发送失败：${data.description}`;
-      }
-    })
-    .catch(err => {
-      tip.textContent = `❌ 网络错误：${err.message}`;
-    })
-    .finally(() => {
-      // 无论成功失败，恢复按钮
-      sendBtn.disabled = false;
-      sendBtn.textContent = "发送消息";
-    });
-  }
-
-  // 额外绑定Enter键发送（双重保障）
-  document.getElementById("userMsg").addEventListener("keydown", function(e) {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      sendUserMsg();
-    }
-  });
-
-  // 页面加载完成后，给按钮加个点击反馈（证明JS已加载）
-  window.onload = function() {
-    const sendBtn = document.getElementById("sendBtn");
-    sendBtn.addEventListener("mouseover", function() {
-      this.style.background = "#0077bb";
-    });
-    sendBtn.addEventListener("mouseout", function() {
-      this.style.background = "#0088cc";
-    });
-    console.log("聊天模块JS已加载，点击发送按钮即可触发～");
-  };
-</script>
 
 
 
