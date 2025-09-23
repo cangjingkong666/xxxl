@@ -1016,6 +1016,444 @@ document.addEventListener('DOMContentLoaded', () => {
 <!-- 模块结尾：GitHub博客专用音乐播放器 -->
 
 
+
+
+
+
+<!-- 模块开头：GitHub博客专用KTV音乐播放器 -->
+<div style="width: 100%; max-width: 800px; margin: 25px auto; padding: 20px; border-radius: 10px; box-shadow: 0 3px 15px rgba(0,0,0,0.06); background: #ffffff; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+  <!-- 音乐配置区：默认音乐列表（可添加/修改） -->
+  <script>
+    const musicList = [
+      {
+        title: "孤勇者",
+        artist: "陈奕迅",
+        url: "https://lu-sycdn.kuwo.cn/be8a87d5df5f5bfb5ecf63eec5ff2522/68d2579f/resource/a2/25/64/2640583885.aac",
+        cover: "https://picsum.photos/id/1/120/120",
+        lrc: `[00:01.00]作词：唐恬
+[00:02.00]作曲：钱雷
+[00:13.52]都是勇敢的
+[00:16.24]你额头的伤口 你的不同 你犯的错
+[00:22.00]都不必隐藏
+[00:24.71]你破旧的玩偶 你的面具 你的自我
+[00:30.47]他们说 要带着光 驯服每一头怪兽
+[00:36.23]他们说 要缝好你的伤 没有人爱小丑
+[00:41.99]为何孤独 不可 光荣
+[00:45.36]人只有不完美 值得歌颂
+[00:48.73]谁说污泥满身的不算英雄
+[00:54.49]爱你孤身走暗巷
+[00:57.86]爱你不跪的模样
+[01:01.23]爱你对峙过绝望
+[01:03.01]不肯哭一场
+[01:04.59]爱你破烂的衣裳
+[01:07.96]却敢堵命运的枪
+[01:11.33]爱你和我那么像
+[01:13.11]缺口都一样
+[01:14.68]去吗 配吗 这褴褛的披风
+[01:18.05]战吗 战啊 以最卑微的梦
+[01:21.42]致那黑夜中的呜咽与怒吼
+[01:26.18]谁说站在光里的才算英雄`
+      },
+      {
+        title: "起风了",
+        artist: "买辣椒也用券",
+        url: "https://freetyst.nf.migu.cn/public/product9th/product1/2023/03/2118/2023032118443122407.mp3?channelid=0",
+        cover: "https://picsum.photos/id/2/120/120",
+        lrc: `[00:00.00]作词：米果
+[00:01.00]作曲：高桥优
+[00:22.50]这一路上走走停停
+[00:25.87]顺着少年漂流的痕迹
+[00:29.24]迈出车站的前一刻
+[00:32.61]竟有些犹豫
+[00:35.98]不禁笑这近乡情怯
+[00:39.35]仍无可避免
+[00:42.72]而长野的天
+[00:44.46]依旧那么暖
+[00:46.19]风吹起了从前
+[00:49.56]从前初识这世间
+[00:52.93]万般流连
+[00:54.66]看着天边似在眼前
+[00:58.03]也甘愿赴汤蹈火去走它一遍
+[01:04.76]如今走过这世间
+[01:08.13]万般流连
+[01:09.87]翻过岁月不同侧脸
+[01:13.24]措不及防闯入你的笑颜`
+      }
+    ];
+    let currentMusicIndex = 0;
+    let isAccompaniment = false; // 是否伴奏模式（默认跟唱）
+    let lrcData = []; // 解析后的歌词数据
+  </script>
+
+  <!-- 播放器主体：封面+控制区+歌词区 布局填充 -->
+  <div style="display: flex; flex-wrap: wrap; gap: 20px;">
+    <!-- 左侧：专辑封面+本地文件上传 -->
+    <div style="display: flex; flex-direction: column; gap: 15px; flex-shrink: 0;">
+      <!-- 专辑封面（带旋转动画） -->
+      <div style="position: relative; width: 120px; height: 120px; border-radius: 8px; overflow: hidden;">
+        <img id="musicCover" src="" alt="专辑封面" style="width: 100%; height: 100%; object-fit: cover;">
+        <div id="coverRotate" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;">
+          <style>
+            @keyframes rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+            .rotating { animation: rotate 10s linear infinite; }
+          </style>
+        </div>
+      </div>
+
+      <!-- 本地文件上传：音乐+歌词 -->
+      <div style="display: flex; flex-direction: column; gap: 8px; width: 120px;">
+        <label style="font-size: 12px; color: #666;">本地音乐</label>
+        <input type="file" id="localMusic" accept="audio/*" style="font-size: 12px;">
+        <label style="font-size: 12px; color: #666; margin-top: 8px;">本地歌词（.lrc）</label>
+        <input type="file" id="localLrc" accept=".lrc" style="font-size: 12px;">
+      </div>
+
+      <!-- 伴奏/跟唱切换 -->
+      <button id="modeBtn" style="padding: 6px 12px; border: 1px solid #2c3e50; border-radius: 4px; background: #fff; color: #2c3e50; font-size: 13px; cursor: pointer;">
+        当前：跟唱模式
+      </button>
+    </div>
+
+    <!-- 右侧：音乐信息+控制+歌词区（填充空余空间） -->
+    <div style="flex: 1; min-width: 250px; display: flex; flex-direction: column; gap: 15px;">
+      <!-- 音乐信息 -->
+      <div>
+        <h3 id="musicTitle" style="margin: 0 0 8px; font-size: 18px; color: #333;">--</h3>
+        <p id="musicArtist" style="margin: 0; font-size: 14px; color: #666;">--</p>
+      </div>
+
+      <!-- 进度条 -->
+      <div>
+        <input 
+          id="musicProgress" 
+          type="range" 
+          min="0" 
+          max="100" 
+          value="0" 
+          style="width: 100%; height: 4px; appearance: none; background: #f2f2f2; border-radius: 2px; outline: none;"
+        >
+        <style>
+          #musicProgress::-webkit-slider-thumb { appearance: none; width: 14px; height: 14px; border-radius: 50%; background: #2c3e50; cursor: pointer; }
+          #musicProgress::-moz-range-thumb { width: 14px; height: 14px; border-radius: 50%; background: #2c3e50; cursor: pointer; border: none; }
+        </style>
+        <div style="display: flex; justify-content: space-between; margin-top: 8px;">
+          <span id="musicTime" style="font-size: 12px; color: #999;">00:00 / 00:00</span>
+          <span id="playMode" style="font-size: 12px; color: #999;">顺序播放</span>
+        </div>
+      </div>
+
+      <!-- 控制按钮 -->
+      <div style="display: flex; justify-content: center; gap: 20px; align-items: center;">
+        <button id="prevBtn" style="background: none; border: none; font-size: 22px; color: #2c3e50; cursor: pointer;">⏮</button>
+        <button id="playPauseBtn" style="background: #2c3e50; color: #fff; border: none; width: 44px; height: 44px; border-radius: 50%; font-size: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center;">▶</button>
+        <button id="nextBtn" style="background: none; border: none; font-size: 22px; color: #2c3e50; cursor: pointer;">⏭</button>
+      </div>
+
+      <!-- KTV歌词区（填充核心空余空间） -->
+      <div id="lrcContainer" style="flex: 1; min-height: 180px; border: 1px solid #f5f5f5; border-radius: 8px; padding: 15px; overflow-y: auto; background: #fafafa; display: flex; flex-direction: column; justify-content: center; align-items: center;">
+        <div id="lrcDisplay" style="width: 100%; text-align: center; line-height: 2; font-size: 16px;">
+          <div style="color: #999; font-size: 14px;">等待播放...</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 播放列表 -->
+  <div style="margin-top: 20px; border-top: 1px solid #f5f5f5; padding-top: 15px;">
+    <h4 style="margin: 0 0 10px; font-size: 14px; color: #666; display: flex; justify-content: space-between; align-items: center;">
+      <span>播放列表</span>
+      <button id="clearList" style="background: none; border: none; font-size: 12px; color: #ff4d4f; cursor: pointer;">清空</button>
+    </h4>
+    <ul id="musicPlaylist" style="margin: 0; padding: 0; list-style: none; max-height: 150px; overflow-y: auto;">
+      <!-- 列表项由JS动态生成 -->
+    </ul>
+  </div>
+</div>
+</div>
+<script>
+  // 初始化核心元素（避免重复DOM查询）
+  const audio = new Audio();
+  const [playPauseBtn, prevBtn, nextBtn, modeBtn, clearListBtn] = 
+    ["playPauseBtn", "prevBtn", "nextBtn", "modeBtn", "clearList"].map(id => document.getElementById(id));
+  const [musicProgress, musicTime, musicTitle, musicArtist, musicCover, coverRotate] = 
+    ["musicProgress", "musicTime", "musicTitle", "musicArtist", "musicCover", "coverRotate"].map(id => document.getElementById(id));
+  const [lrcDisplay, localMusicInput, localLrcInput, musicPlaylist, lrcContainer] = 
+    ["lrcDisplay", "localMusic", "localLrc", "musicPlaylist", "lrcContainer"].map(id => document.getElementById(id));
+
+  // 1. 工具函数：时间格式化（秒 → 分:秒）
+  function formatTime(seconds) {
+    const min = Math.floor(seconds / 60);
+    const sec = Math.floor(seconds % 60);
+    return `${min.toString().padStart(2, "0")}:${sec.toString().padStart(2, "0")}`;
+  }
+
+  // 2. KTV核心：歌词解析（LRC文本 → 时间+歌词对象数组）
+  function parseLrc(lrcText) {
+    const lrcLines = lrcText.split("\n");
+    const lrcArr = [];
+    const timeReg = /\[(.*?)\]/; // 匹配[00:00.00]格式
+
+    lrcLines.forEach(line => {
+      if (!line) return; // 跳过空行
+      const timeMatch = line.match(timeReg);
+      if (!timeMatch) return; // 跳过无时间戳的行
+
+      // 解析时间戳（分:秒.毫秒 → 总秒数）
+      const timeStr = timeMatch[1];
+      const [min, sec] = timeStr.split(":");
+      const totalSec = parseFloat(min) * 60 + parseFloat(sec);
+      // 提取歌词文本（移除时间戳）
+      const text = line.replace(timeReg, "").trim();
+      if (text) lrcArr.push({ time: totalSec, text });
+    });
+
+    // 按时间排序（防止LRC文件顺序错乱）
+    return lrcArr.sort((a, b) => a.time - b.time);
+  }
+
+  // 3. KTV核心：歌词滚动显示（当前歌词红色高亮，居中对齐）
+  function updateLrcDisplay(currentTime) {
+    if (lrcData.length === 0) {
+      lrcDisplay.innerHTML = '<div style="color: #999; font-size: 14px;">无歌词数据</div>';
+      return;
+    }
+
+    // 找到当前播放时间对应的歌词索引
+    let currentLrcIndex = -1;
+    for (let i = 0; i < lrcData.length; i++) {
+      const isLastLine = i === lrcData.length - 1;
+      if (lrcData[i].time <= currentTime && (isLastLine || lrcData[i + 1].time > currentTime)) {
+        currentLrcIndex = i;
+        break;
+      }
+    }
+
+    // 生成歌词HTML（显示当前歌词前后3句，保证滚动流畅）
+    let lrcHtml = "";
+    const startIndex = Math.max(0, currentLrcIndex - 3); // 向前显示3句
+    const endIndex = Math.min(lrcData.length - 1, currentLrcIndex + 3); // 向后显示3句
+
+    for (let i = startIndex; i <= endIndex; i++) {
+      const style = i === currentLrcIndex 
+        ? "color: #ff4d4f; font-weight: 500; font-size: 18px;" // 当前歌词高亮
+        : "color: #666; opacity: 0.8;"; // 非当前歌词淡化
+      lrcHtml += `<div style="${style}">${lrcData[i].text}</div>`;
+    }
+
+    lrcDisplay.innerHTML = lrcHtml;
+    // 滚动到当前歌词（居中显示，提升体验）
+    if (currentLrcIndex !== -1) {
+      const lrcItems = lrcDisplay.querySelectorAll("div");
+      const currentItem = lrcItems[currentLrcIndex - startIndex];
+      if (currentItem) {
+        lrcContainer.scrollTop = currentItem.offsetTop - lrcContainer.clientHeight / 2 + currentItem.clientHeight / 2;
+      }
+    }
+  }
+
+  // 4. 音乐加载逻辑（支持默认列表和本地文件）
+  function loadMusic(index, isLocal = false, localMusicUrl = "", localLrcText = "") {
+    let music;
+    // 区分“默认列表音乐”和“本地音乐”
+    if (isLocal) {
+      music = {
+        title: localMusicInput.files[0]?.name || "本地音乐",
+        artist: "未知歌手",
+        url: localMusicUrl,
+        cover: "https://via.placeholder.com/120x120?text=Local",
+        lrc: localLrcText
+      };
+      currentMusicIndex = index; // 本地音乐暂存索引为0
+    } else {
+      music = musicList[index];
+      if (!music) return;
+      currentMusicIndex = index;
+    }
+
+    // 更新播放器信息
+    audio.src = music.url;
+    musicTitle.textContent = music.title;
+    musicArtist.textContent = music.artist;
+    musicCover.src = music.cover;
+
+    // 解析歌词并初始化显示
+    lrcData = music.lrc ? parseLrc(music.lrc) : [];
+    updateLrcDisplay(0);
+
+    // 更新播放列表选中状态
+    updatePlaylistActive();
+
+    // 加载并自动播放
+    audio.load();
+    audio.play().then(() => {
+      playPauseBtn.textContent = "⏸";
+      coverRotate.classList.add("rotating"); // 封面开始旋转
+    }).catch(err => {
+      console.error("播放失败：", err);
+      playPauseBtn.textContent = "▶";
+      coverRotate.classList.remove("rotating"); // 封面停止旋转
+    });
+  }
+
+  // 5. 播放列表管理（选中状态更新+列表生成）
+  function updatePlaylistActive() {
+    const listItems = musicPlaylist.querySelectorAll("li");
+    listItems.forEach((item, index) => {
+      item.style.cssText = index === currentMusicIndex 
+        ? "padding: 8px 0; cursor: pointer; color: #2c3e50; font-weight: 500; border-left: 3px solid #2c3e50; padding-left: 8px;" 
+        : "padding: 8px 0; cursor: pointer; color: #666; border-left: 3px solid transparent; padding-left: 8px;";
+    });
+  }
+
+  // 初始化播放列表（默认列表+本地文件添加后更新）
+  function initPlaylist() {
+    musicPlaylist.innerHTML = ""; // 清空列表
+    musicList.forEach((music, index) => {
+      const li = document.createElement("li");
+      li.textContent = `${index + 1}. ${music.title} - ${music.artist}`;
+      li.addEventListener("click", () => loadMusic(index));
+      musicPlaylist.appendChild(li);
+    });
+  }
+
+  // 6. 伴奏/跟唱切换（核心：通过AudioContext过滤人声）
+  function toggleAccompaniment() {
+    isAccompaniment = !isAccompaniment;
+    modeBtn.textContent = isAccompaniment ? "当前：伴奏模式" : "当前：跟唱模式";
+
+    // 若未播放音乐，无需处理音频
+    if (audio.paused) return;
+
+    // 伴奏模式：过滤人声（基于声道分离原理，简单版实现）
+    if (isAccompaniment) {
+      // 创建音频上下文（兼容不同浏览器）
+      const AudioContext = window.AudioContext || window.webkitAudioContext;
+      const ctx = new AudioContext();
+      const source = ctx.createMediaElementSource(audio);
+      const splitter = ctx.createChannelSplitter(2); // 分离左右声道
+      const merger = ctx.createChannelMerger(2); // 合并左右声道
+
+      // 连接节点：左声道→右声道输出，右声道→左声道输出（抵消人声）
+      source.connect(splitter);
+      splitter.connect(merger, 0, 1); // 左声道→右声道
+      splitter.connect(merger, 1, 0); // 右声道→左声道
+      merger.connect(ctx.destination);
+    }
+  }
+
+  // 7. 本地文件处理（音乐+歌词上传）
+  // 本地音乐上传
+  localMusicInput.addEventListener("change", (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const localMusicUrl = URL.createObjectURL(file); // 生成临时URL
+
+    // 检查是否已上传本地歌词
+    let localLrcText = "";
+    if (localLrcInput.files[0]) {
+      const lrcFile = localLrcInput.files[0];
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        localLrcText = event.target.result;
+        loadMusic(0, true, localMusicUrl, localLrcText); // 加载本地音乐+歌词
+      };
+      reader.readAsText(lrcFile);
+    } else {
+      loadMusic(0, true, localMusicUrl, ""); // 只加载本地音乐（无歌词）
+    }
+  });
+
+  // 本地歌词单独上传（已加载本地音乐时更新歌词）
+  localLrcInput.addEventListener("change", (e) => {
+    const file = e.target.files[0];
+    if (!file || !audio.src.includes("blob:")) return; // 仅本地音乐生效
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      lrcData = parseLrc(event.target.result);
+      updateLrcDisplay(audio.currentTime); // 立即更新当前歌词
+    };
+    reader.readAsText(file);
+  });
+
+  // 8. 基础控制事件绑定（播放/暂停/上一首/下一首/进度条）
+  // 播放/暂停
+  playPauseBtn.addEventListener("click", () => {
+    if (audio.paused) {
+      audio.play().then(() => {
+        playPauseBtn.textContent = "⏸";
+        coverRotate.classList.add("rotating");
+      }).catch(err => console.error("播放失败：", err));
+    } else {
+      audio.pause();
+      playPauseBtn.textContent = "▶";
+      coverRotate.classList.remove("rotating");
+    }
+  });
+
+  // 上一首
+  prevBtn.addEventListener("click", () => {
+    currentMusicIndex = (currentMusicIndex - 1 + musicList.length) % musicList.length;
+    loadMusic(currentMusicIndex);
+  });
+
+  // 下一首
+  nextBtn.addEventListener("click", () => {
+    currentMusicIndex = (currentMusicIndex + 1) % musicList.length;
+    loadMusic(currentMusicIndex);
+  });
+
+  // 进度条拖动
+  musicProgress.addEventListener("input", () => {
+    const progress = (musicProgress.value / 100) * audio.duration;
+    audio.currentTime = progress;
+    updateLrcDisplay(progress); // 拖动时同步更新歌词
+  });
+
+  // 音频进度实时更新（时间+歌词）
+  audio.addEventListener("timeupdate", () => {
+    const progressPercent = (audio.currentTime / audio.duration) * 100;
+    musicProgress.value = progressPercent;
+    musicTime.textContent = `${formatTime(audio.currentTime)} / ${formatTime(audio.duration)}`;
+    updateLrcDisplay(audio.currentTime); // 实时滚动歌词
+  });
+
+  // 播放结束自动下一首
+  audio.addEventListener("ended", () => {
+    currentMusicIndex = (currentMusicIndex + 1) % musicList.length;
+    loadMusic(currentMusicIndex);
+  });
+
+  // 清空播放列表
+  clearListBtn.addEventListener("click", () => {
+    musicList.length = 0; // 清空默认列表
+    initPlaylist();
+    audio.pause();
+    playPauseBtn.textContent = "▶";
+    coverRotate.classList.remove("rotating");
+    musicTitle.textContent = "--";
+    musicArtist.textContent = "--";
+    lrcDisplay.innerHTML = '<div style="color: #999; font-size: 14px;">播放列表已清空</div>';
+  });
+
+  // 伴奏/跟唱切换按钮
+  modeBtn.addEventListener("click", toggleAccompaniment);
+
+  // 页面加载完成初始化
+  window.addEventListener("DOMContentLoaded", () => {
+    initPlaylist();
+    loadMusic(0); // 加载默认第一首音乐
+  });
+</script>
+
+
+
+
+
+
+
+
+
 <!-- 模块开头：GitHub博客专用M3U8电视直播播放器 -->
 <div style="width: 100%; max-width: 1000px; margin: 25px auto; border-radius: 8px; overflow: hidden; box-shadow: 0 3px 12px rgba(0,0,0,0.05); background: #ffffff;">
   <!-- M3U8直播配置区（直接修改下方链接即可） -->
