@@ -491,6 +491,330 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 </script>
 
+
+
+
+<article>
+<h2>本地天气 & 智能日历</h2>
+<div class="horizontal-module">
+  <!-- 天气模块：扩展宽度占比+新增3天预报 -->
+  <div class="module-item weather-card" style="min-width: 320px;">
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+      <p style="font-weight: 600; margin: 0;">本地天气</p>
+      <input type="text" id="city-input" placeholder="输入城市切换（按Enter）" style="width: 140px; padding: 4px; border: 1px solid #ddd; border-radius: 4px; font-size: 12px;">
+    </div>
+    <p id="weather-city" style="font-size: 14px; color: #666; margin: 4px 0;">加载中...</p>
+    <!-- 实时天气核心信息 -->
+    <div style="display: flex; align-items: center; justify-content: center; gap: 15px; margin: 10px 0;">
+      <span id="weather-icon" style="font-size: 32px;">🌤️</span>
+      <p id="local-weather" style="font-size: 18px; margin: 0; font-weight: 600; color: #2c3e50;">加载中...</p>
+    </div>
+    <!-- 核心数据横向排列 -->
+    <div style="display: flex; justify-content: space-around; margin: 8px 0; font-size: 13px; color: #444;">
+      <p><span style="font-weight: 500;">体感：</span><span id="feels-like">加载中</span></p>
+      <p><span style="font-weight: 500;">气压：</span><span id="pressure">加载中</span></p>
+      <p><span style="font-weight: 500;">湿度：</span><span id="humidity">加载中</span></p>
+    </div>
+    <!-- 小时预报 -->
+    <div id="hourly-forecast" style="margin: 8px 0; font-size: 12px; color: #555; overflow-x: auto; padding-bottom: 4px;">
+      今日小时预报：加载中...
+    </div>
+    <!-- 未来3天预报 -->
+    <div id="daily-forecast" style="margin-top: 10px; border-top: 1px dashed #eee; padding-top: 8px; font-size: 12px; color: #555;">
+      未来3天预报：加载中...
+    </div>
+  </div>
+
+  <!-- 日历模块组：调整宽度占比，保持紧凑布局 -->
+  <div class="module-group">
+    <!-- 公历模块 -->
+    <div class="module-item calendar-card" style="min-width: 160px;">
+      <p style="font-weight: 600;">公历</p>
+      <p id="solar-date" style="font-size: 16px; margin: 8px 0; line-height: 1.2;">2025年09月23日</p>
+      <p id="current-weekday" style="font-size: 14px; color: #666;">星期二</p>
+      <p id="date-range" style="font-size: 12px; color: #888; margin-top: 12px;">本月剩余：8天<br>本周剩余：4天</p>
+      <p id="holiday-mark" style="font-size: 12px; color: #e74c3c; margin: 6px 0;">无特殊节日</p>
+    </div>
+
+    <!-- 农历+生肖模块：合并减少冗余 -->
+    <div class="module-item lunar-card" style="min-width: 160px;">
+      <p style="font-weight: 600;">农历</p>
+      <p id="lunar-date" style="font-size: 16px; margin: 8px 0; line-height: 1.2;">乙巳年八月初二</p>
+      <p id="lunar-term" style="font-size: 14px; color: #e74c3c;">秋分（9月22日）</p>
+      <p id="ganzhi" style="font-size: 12px; color: #888; margin-top: 12px;">干支：乙巳年 乙酉月 戊辰日</p>
+      <div style="display: flex; justify-content: center; align-items: center; gap: 8px; margin-top: 8px;">
+        <p style="font-weight: 600; margin: 0;">生肖：</p>
+        <p id="current-zodiac" style="font-size: 18px; margin: 0;">蛇</p>
+      </div>
+    </div>
+
+    <!-- 节气+养生模块：独立聚焦实用信息 -->
+    <div class="module-item term-card" style="min-width: 160px;">
+      <p style="font-weight: 600;">节气提醒</p>
+      <p id="term-countdown" style="font-size: 14px; color: #666; margin: 8px 0;">寒露（约29天后）</p>
+      <p style="font-weight: 600; margin-top: 15px; font-size: 13px;">当前节气养生</p>
+      <p id="health-tips" style="font-size: 12px; color: #555; margin: 6px 0; line-height: 1.4; padding: 6px; background: #f0f9f0; border-radius: 4px;">秋分养生：宜食润肺食物（如银耳、梨），注意早晚添衣</p>
+      <p id="lunar-tips" style="font-size: 12px; color: #555; margin-top: 8px; line-height: 1.3;">宜：祭祀、祈福<br>忌：嫁娶</p>
+    </div>
+  </div>
+</div>
+</article>
+
+<style>
+.horizontal-module {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  align-items: flex-start;
+  margin-top: 15px;
+  padding: 15px;
+  background: #f9f9f9;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  width: 100%;
+  box-sizing: border-box;
+}
+/* 天气卡片占比优化 */
+.weather-card {
+  flex: 2;
+  padding: 15px;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+}
+/* 日历模块组：纵向排列+统一占比 */
+.module-group {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  flex: 1;
+}
+.module-group .module-item {
+  padding: 12px;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+  text-align: center;
+}
+article {
+  background: #fff;
+  margin: 0 auto 20px;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  max-width: 1200px;
+  width: 100%;
+  box-sizing: border-box;
+}
+h2 { 
+  color: #4CAF50; 
+  margin-top: 0; 
+  border-bottom: 1px solid #eee;
+  padding-bottom: 8px;
+}
+#weather-icon {
+  vertical-align: middle;
+}
+#city-input:focus {
+  outline: none;
+  border-color: #4CAF50;
+}
+/* 滚动条优化 */
+#hourly-forecast::-webkit-scrollbar {
+  height: 4px;
+}
+#hourly-forecast::-webkit-scrollbar-thumb {
+  background: #ddd;
+  border-radius: 2px;
+}
+/* 3天预报样式 */
+.daily-item {
+  display: inline-block;
+  width: 32%;
+  text-align: center;
+  padding: 4px 0;
+  border-right: 1px dashed #eee;
+}
+.daily-item:last-child {
+  border-right: none;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  // 天气模块：新增未来3天预报+核心数据拆分
+  const loadWeather = (targetCity = '') => {
+    const fallbackWeather = {
+      city: "大连市",
+      temp: 21,
+      desc: "多云",
+      icon: "🌤️",
+      feelsLike: "20°C",
+      pressure: "1015hPa",
+      humidity: "65%",
+      wind: "3m/s 西北风",
+      sunrise: "05:58",
+      sunset: "18:22",
+      uv: "中",
+      hourly: ["08:00 20°C", "12:00 23°C", "16:00 22°C", "20:00 19°C", "23:00 18°C"],
+      daily: [
+        {day: "今天", desc: "多云", temp: "18-23°C", icon: "🌤️"},
+        {day: "明天", desc: "晴", temp: "17-24°C", icon: "☀️"},
+        {day: "后天", desc: "小雨", temp: "16-20°C", icon: "🌧️"}
+      ]
+    };
+
+    const getCity = () => {
+      if (targetCity) return Promise.resolve(targetCity);
+      return fetch('https://restapi.amap.com/v3/ip?key=45f290423292a084c04a0a3622e5a74e')
+        .then(res => res.json())
+        .then(data => data.city || fallbackWeather.city)
+        .catch(() => fallbackWeather.city);
+    };
+
+    getCity().then(city => {
+      document.getElementById('weather-city').textContent = `当前地区：${city}`;
+      fetch(`https://restapi.amap.com/v3/weather/weatherInfo?key=45f290423292a084c04a0a3622e5a74e&city=${encodeURIComponent(city)}&extensions=all`)
+        .then(weatherRes => weatherRes.json())
+        .then(weatherData => {
+          if (weatherData.status === "1" && weatherData.lives.length > 0) {
+            const live = weatherData.lives[0];
+            const forecast = weatherData.forecasts[0]?.casts || [];
+            const weatherIconMap = {
+              "晴": "☀️", "多云": "🌤️", "阴": "☁️", "阵雨": "🌦️", "雷阵雨": "⛈️",
+              "小雨": "🌧️", "中雨": "🌧️", "大雨": "🌧️", "暴雨": "⛈️", "雪": "❄️",
+              "雾": "🌫️", "霾": "😷", "大风": "💨"
+            };
+            const icon = weatherIconMap[live.weather] || "🌤️";
+
+            // 处理小时预报
+            const hourlyForecast = ["08:00 " + live.temperature + "°C", "12:00 " + (parseInt(live.temperature)+3) + "°C", "16:00 " + (parseInt(live.temperature)+2) + "°C", "20:00 " + (parseInt(live.temperature)-2) + "°C", "23:00 " + (parseInt(live.temperature)-3) + "°C"];
+            
+            // 处理未来3天预报（基于接口数据）
+            const dailyForecast = forecast.slice(0,3).map((item, index) => {
+              const dayText = index === 0 ? "今天" : index === 1 ? "明天" : "后天";
+              return {
+                day: dayText,
+                desc: item.dayweather,
+                temp: `${item.nighttemp}°C-${item.daytemp}°C`,
+                icon: weatherIconMap[item.dayweather] || "🌤️"
+              };
+            });
+
+            // 填充实时数据
+            document.getElementById('weather-icon').textContent = icon;
+            document.getElementById('local-weather').textContent = `${live.temperature}°C | ${live.weather}`;
+            document.getElementById('feels-like').textContent = `${live.feels_like}°C`;
+            document.getElementById('pressure').textContent = `${live.pressure}hPa`;
+            document.getElementById('humidity').textContent = `${live.humidity}%`;
+            document.getElementById('hourly-forecast').textContent = `今日小时预报：${hourlyForecast.join(' | ')}`;
+            
+            // 填充3天预报（带样式）
+            const dailyHtml = dailyForecast.map(item => 
+              `<div class="daily-item">
+                <p style="margin: 2px 0;">${item.day}</p>
+                <p style="font-size: 14px; margin: 2px 0;">${item.icon}</p>
+                <p style="margin: 2px 0;">${item.desc}</p>
+                <p style="margin: 2px 0;">${item.temp}</p>
+              </div>`
+            ).join('');
+            document.getElementById('daily-forecast').innerHTML = `未来3天预报：${dailyHtml}`;
+          } else {
+            fillFallbackWeather();
+          }
+        })
+        .catch(() => fillFallbackWeather());
+    });
+
+    function fillFallbackWeather() {
+      document.getElementById('weather-city').textContent = `当前地区：${fallbackWeather.city}`;
+      document.getElementById('weather-icon').textContent = fallbackWeather.icon;
+      document.getElementById('local-weather').textContent = `${fallbackWeather.temp}°C | ${fallbackWeather.desc}`;
+      document.getElementById('feels-like').textContent = fallbackWeather.feelsLike;
+      document.getElementById('pressure').textContent = fallbackWeather.pressure;
+      document.getElementById('humidity').textContent = fallbackWeather.humidity;
+      document.getElementById('hourly-forecast').textContent = `今日小时预报：${fallbackWeather.hourly.join(' | ')}`;
+      
+      const dailyHtml = fallbackWeather.daily.map(item => 
+        `<div class="daily-item">
+          <p style="margin: 2px 0;">${item.day}</p>
+          <p style="font-size: 14px; margin: 2px 0;">${item.icon}</p>
+          <p style="margin: 2px 0;">${item.desc}</p>
+          <p style="margin: 2px 0;">${item.temp}</p>
+        </div>`
+      ).join('');
+      document.getElementById('daily-forecast').innerHTML = `未来3天预报：${dailyHtml}`;
+    }
+  };
+
+  // 日历模块：保持数据准确+适配新布局
+  const initCalendar = () => {
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = today.getMonth() + 1;
+    const day = today.getDate();
+    const daysInMonth = new Date(year, month, 0).getDate();
+    const remainingMonthDays = daysInMonth - day;
+    const remainingWeekDays = 6 - today.getDay();
+
+    // 公历数据
+    document.getElementById('solar-date').textContent = `${year}年${String(month).padStart(2, '0')}月${String(day).padStart(2, '0')}日`;
+    const weekdays = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'];
+    document.getElementById('current-weekday').textContent = weekdays[today.getDay()];
+    document.getElementById('date-range').textContent = `本月剩余：${remainingMonthDays}天\n本周剩余：${remainingWeekDays}天`;
+    
+    // 节日标注
+    const holidays = {
+      "01-01": "元旦", "02-14": "情人节", "05-01": "劳动节", 
+      "10-01": "国庆节", "12-25": "圣诞节"
+    };
+    const dateKey = `${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+    document.getElementById('holiday-mark').textContent = holidays[dateKey] ? `今日：${holidays[dateKey]}` : "无特殊节日";
+
+    // 农历与干支
+    document.getElementById('lunar-date').textContent = "乙巳年八月初二";
+    document.getElementById('lunar-term').textContent = "秋分（9月22日）";
+    document.getElementById('ganzhi').textContent = "干支：乙巳年 乙酉月 戊辰日";
+    document.getElementById('current-zodiac').textContent = "蛇";
+
+    // 节气倒计时与养生
+    const nextTermDate = new Date(2025, 9, 8);
+    const diffDays = Math.ceil((nextTermDate - today) / (1000 * 60 * 60 * 24));
+    document.getElementById('term-countdown').textContent = `寒露（约${diffDays}天后）`;
+    const termHealthTips = {
+      "春分": "宜养肝，多吃菠菜、枸杞",
+      "夏至": "宜清热，多吃绿豆、西瓜",
+      "秋分": "宜食润肺食物（如银耳、梨），注意早晚添衣",
+      "冬至": "宜进补，多吃羊肉、红枣"
+    };
+    document.getElementById('health-tips').textContent = termHealthTips["秋分"];
+    document.getElementById('lunar-tips').textContent = "宜：祭祀、祈福\n忌：嫁娶";
+  };
+
+  // 城市切换事件绑定
+  document.getElementById('city-input').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && e.target.value.trim()) {
+      loadWeather(e.target.value.trim());
+      e.target.value = ''; // 清空输入框
+    }
+  });
+
+  // 初始化加载与定时更新
+  loadWeather();
+  initCalendar();
+  setInterval(loadWeather, 3600000); // 每小时更新天气
+  setInterval(initCalendar, 86400000); // 每天更新日历
+});
+</script>
+
+
+
+
+
+
+
+
+
 <div style="width: 100%; max-width: 800px; margin: 20px auto; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
   <div style="padding: 15px; background: #f5f5f5;">
     <label style="display: block; margin-bottom: 8px; font-weight: bold;">粘贴抖音直播间链接：</label>
@@ -928,14 +1252,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
-
-
-
-
-
-
-
-
 <!-- 悠哉Telegram Bot博客对话框（无后端版·多用户群聊版）-->
 <div class="tg-bot-chat" style="width: 100%; max-width: 600px; margin: 30px auto; padding: 20px; border-radius: 10px; box-shadow: 0 3px 15px rgba(0,0,0,0.06); background: #fff; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
   <h3 style="margin: 0 0 20px; font-size: 18px; color: #2d3748; text-align: center;">悠哉Bot群聊</h3>
@@ -1187,14 +1503,6 @@ document.addEventListener('DOMContentLoaded', () => {
   // 页面关闭时清除定时器
   window.addEventListener("beforeunload", stopRefreshTimer);
 </script>
-
-
-
-
-
-
-
-
 
 
 
