@@ -967,6 +967,381 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>天气日历模块</title>
+    <!-- 外部资源CDN，无需本地配置 -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <script>
+        // Tailwind自定义配置：天气主题色
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        weather: {
+                            main: '#4285F4',
+                            light: '#E8F0FE',
+                            dark: '#1A5FCC',
+                            temp: '#FF6D01'
+                        }
+                    },
+                    fontFamily: {
+                        inter: ['Inter', 'system-ui', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+            .calendar-grid {
+                grid-template-columns: repeat(7, 1fr);
+            }
+            .weather-shadow {
+                box-shadow: 0 3px 15px rgba(66, 133, 244, 0.1);
+            }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 font-inter p-4 md:p-6">
+    <!-- 天气日历主容器 -->
+    <div class="max-w-3xl mx-auto bg-white rounded-xl weather-shadow overflow-hidden">
+        <!-- 顶部天气信息栏 -->
+        <div class="bg-weather-main text-white p-5 md:p-6 flex flex-col md:flex-row justify-between items-center">
+            <div>
+                <h2 class="text-xl md:text-2xl font-bold flex items-center" id="location">
+                    <<i class="fa fa-map-marker mr-2"></</i>
+                    <span>获取位置中...</span>
+                </h2>
+                <p class="text-weather-light mt-1 text-sm md:text-base" id="current-date"></p>
+            </div>
+            <div class="flex items-center mt-4 md:mt-0">
+                <div class="text-3xl md:text-4xl mr-3" id="weather-icon">
+                    <<i class="fa fa-cloud"></</i>
+                </div>
+                <div>
+                    <p class="text-2xl md:text-3xl font-bold" id="current-temp">--℃</p>
+                    <p class="text-weather-light text-center md:text-right text-sm" id="weather-desc">未知天气</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 今日天气详情 -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-3 p-5">
+            <div class="bg-weather-light rounded-lg p-3 text-center">
+                <p class="text-gray-500 text-xs">湿度</p>
+                <p class="text-weather-dark font-bold text-lg mt-1" id="humidity">--%</p>
+            </div>
+            <div class="bg-weather-light rounded-lg p-3 text-center">
+                <p class="text-gray-500 text-xs">风力</p>
+                <p class="text-weather-dark font-bold text-lg mt-1" id="wind">-- 级</p>
+            </div>
+            <div class="bg-weather-light rounded-lg p-3 text-center">
+                <p class="text-gray-500 text-xs">日出</p>
+                <p class="text-weather-dark font-bold text-lg mt-1" id="sunrise">--:--</p>
+            </div>
+            <div class="bg-weather-light rounded-lg p-3 text-center">
+                <p class="text-gray-500 text-xs">日落</p>
+                <p class="text-weather-dark font-bold text-lg mt-1" id="sunset">--:--</p>
+            </div>
+        </div>
+
+        <!-- 日历标题 -->
+        <div class="px-5 py-2 border-t border-gray-100 bg-gray-50">
+            <h3 class="text-base font-semibold text-gray-700" id="calendar-month">2024年5月</h3>
+        </div>
+
+        <!-- 日历星期头部 -->
+        <div class="grid calendar-grid bg-gray-50 border-t border-gray-100">
+            <div class="py-2 text-center text-gray-500 text-sm font-medium">日</div>
+            <div class="py-2 text-center text-gray-500 text-sm font-medium">一</div>
+            <div class="py-2 text-center text-gray-500 text-sm font-medium">二</div>
+            <div class="py-2 text-center text-gray-500 text-sm font-medium">三</div>
+            <div class="py-2 text-center text-gray-500 text-sm font-medium">四</div>
+            <div class="py-2 text-center text-gray-500 text-sm font-medium">五</div>
+            <div class="py-2 text-center text-gray-500 text-sm font-medium">六</div>
+        </div>
+
+        <!-- 日历日期网格 -->
+        <div class="grid calendar-grid" id="calendar-days">
+            <!-- 日期由JS动态生成 -->
+        </div>
+    </div>
+
+    <script>
+        // 页面加载完成后初始化
+        document.addEventListener('DOMContentLoaded', () => {
+            initBasicDate();          // 初始化日期显示
+            initWeatherLocation();    // 初始化位置（IP定位→GPS定位→默认大连）
+            generateCalendarGrid();   // 生成日历网格
+        });
+
+        // 1. 初始化基础日期（当前日期、日历月份）
+        function initBasicDate() {
+            const now = new Date();
+            // 当前日期格式：2024年5月20日 星期一
+            const dateOptions = { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' };
+            document.getElementById('current-date').textContent = now.toLocaleDateString('zh-CN', dateOptions);
+            
+            // 日历标题月份：2024年5月
+            const monthOptions = { year: 'numeric', month: 'long' };
+            document.getElementById('calendar-month').textContent = now.toLocaleDateString('zh-CN', monthOptions);
+        }
+
+        // 2. 初始化位置获取（优先级：IP定位 → GPS定位 → 默认大连）
+        function initWeatherLocation() {
+            // 先尝试IP定位（无需用户授权）
+            getLocationByIP()
+                .catch(() => {
+                    // IP定位失败，尝试GPS定位（需用户授权）
+                    return getLocationByGPS();
+                })
+                .catch(() => {
+                    // GPS定位也失败，使用默认大连
+                    document.getElementById('location').innerHTML = '<<i class="fa fa-map-marker mr-2"></</i>大连市';
+                    getWeatherByCity('大连市');
+                });
+        }
+
+        // 3. IP定位（通过高德API，无需用户授权）
+        function getLocationByIP() {
+            return new Promise((resolve, reject) => {
+                // 公开测试API Key，确保无需用户申请
+                const apiKey = '450f820e5f7485525f6877894608a3f8';
+                fetch(`https://restapi.amap.com/v3/ip?key=${apiKey}`)
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.status === '1' && data.city) {
+                            const city = data.city.replace('市', '') + '市'; // 统一格式（如"大连市"）
+                            document.getElementById('location').innerHTML = `<<i class="fa fa-map-marker mr-2"></</i>${city}`;
+                            getWeatherByCity(city);
+                            resolve();
+                        } else {
+                            reject('IP定位未获取到城市');
+                        }
+                    })
+                    .catch(() => reject('IP定位接口请求失败'));
+            });
+        }
+
+        // 4. GPS定位（需要用户授权）
+        function getLocationByGPS() {
+            return new Promise((resolve, reject) => {
+                if (!navigator.geolocation) {
+                    reject('浏览器不支持GPS定位');
+                    return;
+                }
+
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        const lat = position.coords.latitude;
+                        const lon = position.coords.longitude;
+                        getLocationNameByCoord(lat, lon); // 经纬度转城市名
+                        getWeatherByCoord(lat, lon);      // 经纬度查天气
+                        resolve();
+                    },
+                    () => reject('用户拒绝GPS定位授权')
+                );
+            });
+        }
+
+        // 5. 经纬度转城市名
+        function getLocationNameByCoord(lat, lon) {
+            const apiKey = '450f820e5f7485525f6877894608a3f8';
+            fetch(`https://restapi.amap.com/v3/geocode/regeo?key=${apiKey}&location=${lon},${lat}`)
+                .then(res => res.json())
+                .then(data => {
+                    if (data.status === '1') {
+                        const city = data.regeocode.addressComponent.city || data.regeocode.addressComponent.province;
+                        document.getElementById('location').innerHTML = `<<i class="fa fa-map-marker mr-2"></</i>${city}`;
+                    }
+                });
+        }
+
+        // 6. 按城市名查天气
+        function getWeatherByCity(city) {
+            const apiKey = '450f820e5f7485525f6877894608a3f8';
+            fetch(`https://restapi.amap.com/v3/weather/weatherInfo?key=${apiKey}&city=${city}&extensions=all`)
+                .then(res => res.json())
+                .then(data => {
+                    if (data.status === '1') {
+                        renderWeatherData(data.lives[0], data.forecasts[0]);
+                    }
+                })
+                .catch(showWeatherError);
+        }
+
+        // 7. 按经纬度查天气
+        function getWeatherByCoord(lat, lon) {
+            const apiKey = '450f820e5f7485525f6877894608a3f8';
+            fetch(`https://restapi.amap.com/v3/weather/weatherInfo?key=${apiKey}&location=${lon},${lat}&extensions=all`)
+                .then(res => res.json())
+                .then(data => {
+                    if (data.status === '1') {
+                        renderWeatherData(data.lives[0], data.forecasts[0]);
+                    }
+                })
+                .catch(showWeatherError);
+        }
+
+        // 8. 渲染天气数据到页面
+        function renderWeatherData(liveData, forecastData) {
+            // 基础天气信息
+            document.getElementById('current-temp').textContent = `${liveData.temperature}℃`;
+            document.getElementById('weather-desc').textContent = liveData.weather;
+            document.getElementById('humidity').textContent = `${liveData.humidity}%`;
+            document.getElementById('wind').textContent = `${liveData.windpower} 级`;
+            
+            // 日出日落（截取时分）
+            const sunrise = forecastData.casts[0].sunrise?.slice(0, 5) || '--:--';
+            const sunset = forecastData.casts[0].sunset?.slice(0, 5) || '--:--';
+            document.getElementById('sunrise').textContent = sunrise;
+            document.getElementById('sunset').textContent = sunset;
+
+            // 匹配天气图标
+            setWeatherIcon(liveData.weather);
+
+            // 日历添加未来天气
+            addWeatherToCalendar(forecastData.casts);
+        }
+
+        // 9. 设置天气图标（根据天气描述匹配Font Awesome）
+        function setWeatherIcon(weatherDesc) {
+            const iconEl = document.getElementById('weather-icon');
+            const desc = weatherDesc.toLowerCase();
+
+            if (desc.includes('晴')) {
+                iconEl.innerHTML = '<<i class="fa fa-sun-o text-yellow-400"></</i>';
+            } else if (desc.includes('雨')) {
+                iconEl.innerHTML = '<<i class="fa fa-tint text-weather-main"></</i>';
+            } else if (desc.includes('雪')) {
+                iconEl.innerHTML = '<<i class="fa fa-snowflake-o text-white"></</i>';
+            } else if (desc.includes('云') || desc.includes('阴')) {
+                iconEl.innerHTML = '<<i class="fa fa-cloud text-gray-400"></</i>';
+            } else if (desc.includes('雷')) {
+                iconEl.innerHTML = '<<i class="fa fa-bolt text-yellow-500"></</i>';
+            } else {
+                iconEl.innerHTML = '<<i class="fa fa-cloud"></</i>';
+            }
+        }
+
+        // 10. 生成日历网格（含上月残留、本月日期、下月填充）
+        function generateCalendarGrid() {
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = now.getMonth();
+            const today = now.getDate();
+            const daysEl = document.getElementById('calendar-days');
+            daysEl.innerHTML = '';
+
+            // 当月第一天是星期几（0=周日，6=周六）
+            const firstDayOfMonth = new Date(year, month, 1).getDay();
+            // 当月总天数
+            const totalDaysOfMonth = new Date(year, month + 1, 0).getDate();
+            // 上月总天数
+            const totalDaysOfLastMonth = new Date(year, month, 0).getDate();
+
+            // 1. 填充上月残留日期
+            for (let i = 0; i < firstDayOfMonth; i++) {
+                const dayEl = document.createElement('div');
+                dayEl.className = 'py-3 text-center text-gray-300 border-t border-gray-100 text-sm';
+                dayEl.textContent = totalDaysOfLastMonth - firstDayOfMonth + 1 + i;
+                daysEl.appendChild(dayEl);
+            }
+
+            // 2. 填充当月日期
+            for (let i = 1; i <= totalDaysOfMonth; i++) {
+                const dayEl = document.createElement('div');
+                const isToday = i === today;
+                const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
+
+                // 基础样式（今日特殊标记）
+                dayEl.className = `py-3 text-center border-t border-gray-100 text-sm transition-colors ${
+                    isToday ? 'bg-weather-main text-white font-bold' : 'hover:bg-weather-light'
+                }`;
+
+                // 日期内容（今日加"今天"标签）
+                dayEl.innerHTML = `<span class="block">${i}</span>`;
+                if (isToday) {
+                    dayEl.innerHTML += '<span class="text-xs mt-1 block">今天</span>';
+                }
+
+                // 标记日期，用于后续绑定天气
+                dayEl.dataset.date = dateStr;
+                daysEl.appendChild(dayEl);
+            }
+
+            // 3. 填充下月日期（补满7列网格）
+            const lastDayOfMonth = new Date(year, month, totalDaysOfMonth).getDay();
+            const nextMonthFillDays = 6 - lastDayOfMonth;
+            for (let i = 1; i <= nextMonthFillDays; i++) {
+                const dayEl = document.createElement('div');
+                dayEl.className = 'py-3 text-center text-gray-300 border-t border-gray-100 text-sm';
+                dayEl.textContent = i;
+                daysEl.appendChild(dayEl);
+            }
+        }
+
+        // 11. 给日历日期添加天气信息（高低温+图标）
+        function addWeatherToCalendar(casts) {
+            casts.forEach(cast => {
+                const dateStr = cast.date; // 格式：2024-05-20
+                const dayEl = document.querySelector(`[data-date="${dateStr}"]`);
+                
+                if (dayEl) {
+                    // 匹配天气图标
+                    let icon = '';
+                    if (cast.dayweather.includes('晴')) {
+                        icon = '<<i class="fa fa-sun-o text-yellow-400 text-xs"></</i>';
+                    } else if (cast.dayweather.includes('雨')) {
+                        icon = '<<i class="fa fa-tint text-weather-main text-xs"></</i>';
+                    } else {
+                        icon = '<<i class="fa fa-cloud text-gray-400 text-xs"></</i>';
+                    }
+
+                    // 添加天气信息
+                    dayEl.innerHTML += `
+                        <div class="mt-1 text-xs text-gray-600">
+                            ${icon}
+                            <span>${cast.daytemp}°/${cast.nighttemp}°</span>
+                        </div>
+                    `;
+                }
+            });
+        }
+
+    // 12. 天气加载失败时显示默认信息
+    function showWeatherError() {
+        document.getElementById('current-temp').textContent = '--℃';
+        document.getElementById('weather-desc').textContent = '天气加载失败';
+        document.getElementById('humidity').textContent = '--%';
+        document.getElementById('wind').textContent = '-- 级';
+        document.getElementById('sunrise').textContent = '--:--';
+        document.getElementById('sunset').textContent = '--:--';
+        
+        // 日历中今日添加失败提示
+        const now = new Date();
+        const dateStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+        const todayEl = document.querySelector(`[data-date="${dateStr}"]`);
+        if (todayEl) {
+            todayEl.innerHTML += '<div class="mt-1 text-xs text-red-500">天气获取失败</div>';
+        }
+    }
+
+    // 13. 处理日期格式兼容性（确保不同浏览器显示一致）
+    function formatDate(date) {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    }
+</script>
+</body>
+</html>
 
 
 
