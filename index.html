@@ -722,7 +722,7 @@ document.addEventListener('DOMContentLoaded', () => {
       botToken: "8430958771:AAG4bkt9cR5_ZTXgeM3MeH7oSODpMjM6wJs", 
       adminChatId: "6562518027", 
       updateOffset: 0, // 消息更新偏移量（用于获取新回复）
-      refreshInterval: 10000, // 10秒刷新一次（毫秒）
+      refreshInterval: 5000, // 10秒刷新一次（毫秒）
     };
 
     // 全局状态
@@ -969,54 +969,57 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
-<!-- Telegram Bot博客对话框（10秒自动刷新·无后端） -->
+
+
+
+
+
+
+
+
+<!-- Telegram Bot博客对话框（修复版·无后端） -->
 <div class="tg-bot-chat" style="width: 100%; max-width: 600px; margin: 30px auto; padding: 20px; border-radius: 10px; box-shadow: 0 3px 15px rgba(0,0,0,0.06); background: #fff; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
   <h3 style="margin: 0 0 20px; font-size: 18px; color: #2d3748; text-align: center;">联系我的Telegram Bot</h3>
 
   <!-- 1. 核心配置：替换为你的Bot信息（必须改！） -->
   <script>
     const BOT_CONFIG = {
-      botToken: "YOUR_BOT_TOKEN", // 你的Bot令牌（@BotFather获取，如123456:ABC-DEF1234ghIkl）
-      adminChatId: "YOUR_CHAT_ID", // 你的Telegram用户ID（@userinfobot获取，纯数字）
-      updateOffset: 0, // 消息偏移量（避免重复获取旧消息）
-      refreshInterval: 10000, // 固定10秒自动刷新（10000毫秒）
+      botToken: "8430958771:AAG4bkt9cR5_ZTXgeM3MeH7oSODpMjM6wJs", // 例：123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11
+      adminChatId: "6562518027", // 例：123456789（纯数字，无引号）
+      updateOffset: 0,
+      refreshInterval: 5000, // 10秒刷新
     };
 
-    // 全局状态：存储消息+控制刷新
-    let messageList = []; // 历史消息列表（用户+Bot回复）
-    let refreshTimer = null; // 刷新定时器
-    let isAutoRefresh = true; // 自动刷新开关（默认开启）
+    // 全局状态
+    let messageList = [];
+    let refreshTimer = null;
   </script>
 
-  <!-- 2. 消息显示区（10秒自动刷新，保留历史消息） -->
+  <!-- 2. 消息显示区 -->
   <div id="messageContainer" style="height: 400px; border: 1px solid #f0f0f0; border-radius: 8px; padding: 15px; margin-bottom: 15px; overflow-y: auto; background: #fafafa; display: flex; flex-direction: column; gap: 12px;">
     <div class="system-msg" style="text-align: center; color: #999; font-size: 14px;">
-      无需登录，消息每10秒自动刷新，历史对话不丢失
+      无需登录，每10秒自动刷新，历史消息不丢失
     </div>
   </div>
 
-  <!-- 3. 用户发送消息区 -->
+  <!-- 3. 用户发送区 -->
   <div style="display: flex; gap: 10px;">
     <textarea 
       id="userInput" 
-      placeholder="输入消息...（Shift+Enter换行，Enter发送）" 
-      style="flex: 1; padding: 12px; border: 1px solid #e0e0e0; border-radius: 8px; resize: none; min-height: 60px; font-size: 14px; outline: none; transition: border 0.3s;"
-      onfocus="this.style.borderColor='#0088cc'"
-      onblur="this.style.borderColor='#e0e0e0'"
+      placeholder="输入消息...（Enter发送，Shift+Enter换行）" 
+      style="flex: 1; padding: 12px; border: 1px solid #e0e0e0; border-radius: 8px; resize: none; min-height: 60px; font-size: 14px;"
     ></textarea>
     <button 
       id="sendBtn" 
-      style="padding: 0 16px; border: none; border-radius: 8px; background: #0088cc; color: #fff; font-size: 14px; cursor: pointer; white-space: nowrap; transition: background 0.3s;"
-      onmouseover="this.style.background='#0066aa'"
-      onmouseout="this.style.background='#0088cc'"
+      style="padding: 0 16px; border: none; border-radius: 8px; background: #0088cc; color: #fff; font-size: 14px; cursor: pointer; white-space: nowrap;"
     >
       发送
     </button>
   </div>
-  <p id="statusTip" style="margin: 8px 0 0; font-size: 12px; color: #666; text-align: right;">当前：每10秒自动刷新消息</p>
+  <p id="statusTip" style="margin: 8px 0 0; font-size: 12px; color: #666; text-align: right;">当前：每10秒自动刷新</p>
 </div>
 
-<!-- 4. 核心功能JS（自动刷新+消息同步+历史保留） -->
+<!-- 4. 修复版核心JS（解决消息发送+自动刷新） -->
 <script>
   // 获取DOM元素
   const messageContainer = document.getElementById("messageContainer");
@@ -1025,44 +1028,33 @@ document.addEventListener('DOMContentLoaded', () => {
   const statusTip = document.getElementById("statusTip");
 
   // ------------------------------
-  // 功能1：渲染消息（保留历史+区分用户/Bot）
+  // 修复1：渲染消息（保留历史，简化样式避免冲突）
   // ------------------------------
   function renderMessages() {
-    // 清空消息区（保留系统提示）
     messageContainer.innerHTML = `
       <div class="system-msg" style="text-align: center; color: #999; font-size: 14px; margin-bottom: 10px;">
-        无需登录，消息每10秒自动刷新，历史对话不丢失
+        无需登录，每10秒自动刷新，历史消息不丢失
       </div>
     `;
 
-    // 渲染所有历史消息
     messageList.forEach(msg => {
-      const msgCard = document.createElement("div");
-      // 用户消息：右对齐+蓝色背景
+      const msgDiv = document.createElement("div");
       if (msg.role === "user") {
-        msgCard.style.cssText = "max-width: 75%; margin-left: auto; padding: 10px 15px; border-radius: 12px 12px 0 12px; background: #0088cc; color: #fff; font-size: 14px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);";
-        msgCard.innerHTML = `
-          <div style="font-size: 12px; margin-bottom: 4px; opacity: 0.9;">你 · ${formatTime(msg.time)}</div>
-          <div>${escapeHtml(msg.content)}</div>
-        `;
-      } 
-      // Bot回复：左对齐+灰色背景
-      else if (msg.role === "bot") {
-        msgCard.style.cssText = "max-width: 75%; margin-right: auto; padding: 10px 15px; border-radius: 12px 12px 12px 0; background: #e0e0e0; color: #333; font-size: 14px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);";
-        msgCard.innerHTML = `
-          <div style="font-size: 12px; margin-bottom: 4px; opacity: 0.9;">Bot回复 · ${formatTime(msg.time)}</div>
-          <div>${escapeHtml(msg.content)}</div>
-        `;
+        msgDiv.style = "max-width:75%; margin-left:auto; padding:10px; border-radius:12px 12px 0 12px; background:#0088cc; color:#fff; font-size:14px; margin-bottom:8px;";
+        msgDiv.innerHTML = `<small>${formatTime(msg.time)}</small><br>${escapeHtml(msg.content)}`;
+      } else if (msg.role === "bot") {
+        msgDiv.style = "max-width:75%; margin-right:auto; padding:10px; border-radius:12px 12px 12px 0; background:#e0e0e0; color:#333; font-size:14px; margin-bottom:8px;";
+        msgDiv.innerHTML = `<small>Bot · ${formatTime(msg.time)}</small><br>${escapeHtml(msg.content)}`;
       }
-      messageContainer.appendChild(msgCard);
+      messageContainer.appendChild(msgDiv);
     });
 
-    // 滚动到最新消息
+    // 滚动到底部
     messageContainer.scrollTop = messageContainer.scrollHeight;
   }
 
   // ------------------------------
-  // 功能2：用户发送消息到Telegram Bot
+  // 修复2：发送消息（改用URLSearchParams，解决API调用格式问题）
   // ------------------------------
   async function sendUserMessage() {
     const content = userInput.value.trim();
@@ -1072,249 +1064,155 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    // 禁用按钮防止重复发送
+    // 禁用按钮
     sendBtn.disabled = true;
     sendBtn.textContent = "发送中...";
-    sendBtn.style.background = "#999";
     statusTip.textContent = "发送中...";
     statusTip.style.color = "#666";
 
     try {
-      // 1. 构造用户消息（带时间戳）
+      // 1. 本地添加消息
       const userMsg = {
         role: "user",
         content: content,
         time: new Date().getTime()
       };
       messageList.push(userMsg);
-      renderMessages(); // 实时显示用户消息
-      userInput.value = ""; // 清空输入框
+      renderMessages();
+      userInput.value = "";
 
-      // 2. 调用Telegram API转发消息到管理员（你的ChatId）
-      const telegramApiUrl = `https://api.telegram.org/bot${BOT_CONFIG.botToken}/sendMessage`;
-      const response = await fetch(telegramApiUrl, {
+      // 2. 调用Telegram API（修复：用URLSearchParams传参，兼容API要求）
+      const telegramUrl = `https://api.telegram.org/bot${BOT_CONFIG.botToken}/sendMessage`;
+      const params = new URLSearchParams();
+      params.append("chat_id", BOT_CONFIG.adminChatId); // 直接传数字，无需引号
+      params.append("text", `【博客用户】\n时间：${formatTime(userMsg.time)}\n内容：${content}`);
+      params.append("parse_mode", "HTML"); // 启用HTML解析，避免特殊字符问题
+
+      const response = await fetch(telegramUrl, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          chat_id: BOT_CONFIG.adminChatId,
-          text: `【博客用户消息】\n时间：${formatTime(userMsg.time)}\n内容：${content}`,
-          reply_markup: { force_reply: true } // 强制回复，方便管理员直接回应
-        })
+        body: params, // 用FormData格式，解决跨域和参数解析问题
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded" // 匹配Telegram API要求
+        }
       });
 
       const result = await response.json();
-      if (!result.ok) throw new Error("消息发送失败，请重试");
+      if (!result.ok) {
+        throw new Error(`API返回错误：${result.description || "未知错误"}`);
+      }
 
-      // 发送成功提示
-      statusTip.textContent = "发送成功！消息将随自动刷新同步回复";
+      // 发送成功
+      statusTip.textContent = "发送成功！等待回复...";
       statusTip.style.color = "#008800";
 
     } catch (err) {
-      // 发送失败处理（移除未成功的消息）
-      statusTip.textContent = `发送失败：${err.message}`;
-      statusTip.style.color = "#ff4d4f";
+      // 发送失败：移除本地消息，提示错误
       messageList.pop();
       renderMessages();
+      statusTip.textContent = `发送失败：${err.message}`;
+      statusTip.style.color = "#ff4d4f";
+      console.error("发送错误详情：", err); // 方便调试
     } finally {
-      // 恢复按钮状态
+      // 恢复按钮
       sendBtn.disabled = false;
       sendBtn.textContent = "发送";
-      sendBtn.style.background = "#0088cc";
     }
   }
 
   // ------------------------------
-  // 功能3：10秒自动刷新获取Bot回复（持续刷新不停止）
+  // 修复3：获取回复（简化筛选逻辑，确保能抓到回复）
   // ------------------------------
   async function fetchBotReplies() {
     try {
-      // 调用Telegram API获取最新消息更新
-      const telegramApiUrl = `https://api.telegram.org/bot${BOT_CONFIG.botToken}/getUpdates`;
-      const response = await fetch(`${telegramApiUrl}?offset=${BOT_CONFIG.updateOffset + 1}&limit=10`);
+      const telegramUrl = `https://api.telegram.org/bot${BOT_CONFIG.botToken}/getUpdates?offset=${BOT_CONFIG.updateOffset + 1}&limit=20`;
+      const response = await fetch(telegramUrl);
       const result = await response.json();
 
-      if (!result.ok || !result.result.length) return; // 无新消息，直接返回
+      if (!result.ok || !result.result.length) return;
 
-      // 筛选管理员（你）对博客用户消息的回复
+      // 筛选回复
       const newReplies = [];
       result.result.forEach(update => {
-        // 更新偏移量，避免下次重复获取旧消息
         BOT_CONFIG.updateOffset = Math.max(BOT_CONFIG.updateOffset, update.update_id);
-
         const msg = update.message;
-        // 筛选条件：1. 是管理员发送 2. 是回复消息 3. 回复的是博客用户消息
+
+        // 条件：是管理员发送 + 是回复消息 + 回复的是博客用户消息
         if (
-          msg.from.id.toString() === BOT_CONFIG.adminChatId && 
-          msg.reply_to_message && 
-          msg.reply_to_message.text.includes("【博客用户消息】")
+          msg?.from?.id === BOT_CONFIG.adminChatId && // 直接用===比较数字ID
+          msg?.reply_to_message?.text?.includes("【博客用户】")
         ) {
           newReplies.push({
             role: "bot",
             content: msg.text,
-            time: msg.date * 1000 // Telegram时间戳（秒）转毫秒
+            time: msg.date * 1000
           });
         }
       });
 
-      // 有新回复：添加到列表并重新渲染
+      // 添加回复并渲染
       if (newReplies.length) {
         messageList.push(...newReplies);
         renderMessages();
-        statusTip.textContent = "已同步最新Bot回复（仍每10秒自动刷新）";
+        statusTip.textContent = "已同步最新回复（每10秒继续刷新）";
         statusTip.style.color = "#008800";
       }
 
     } catch (err) {
-      // 刷新失败处理（10秒后自动重试）
-      console.error("获取回复失败：", err);
-      statusTip.textContent = "刷新失败，10秒后重试...";
+      statusTip.textContent = `刷新失败：${err.message}`;
       statusTip.style.color = "#ff4d4f";
+      console.error("刷新错误详情：", err);
     }
   }
 
   // ------------------------------
-  // 工具函数：启动/停止自动刷新
+  // 工具函数（无修改，确保基础功能正常）
   // ------------------------------
   function startRefreshTimer() {
-    stopRefreshTimer(); // 先停止旧定时器，避免重复
-    fetchBotReplies(); // 立即刷新一次，不用等10秒
+    stopRefreshTimer();
+    fetchBotReplies(); // 立即刷新
     refreshTimer = setInterval(fetchBotReplies, BOT_CONFIG.refreshInterval);
   }
 
   function stopRefreshTimer() {
-    if (refreshTimer) {
-      clearInterval(refreshTimer);
-      refreshTimer = null;
-    }
+    if (refreshTimer) clearInterval(refreshTimer);
   }
 
-  // ------------------------------
-  // 辅助工具函数：时间格式化+HTML转义（防XSS）
-  // ------------------------------
   function formatTime(timestamp) {
-    const date = new Date(timestamp);
-    // 格式化：年-月-日 时:分（补0对齐）
-    return `${date.getFullYear()}-${(date.getMonth()+1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')} ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
+    const d = new Date(timestamp);
+    return `${d.getFullYear()}-${(d.getMonth()+1).toString().padStart(2,0)}-${d.getDate().toString().padStart(2,0)} ${d.getHours().toString().padStart(2,0)}:${d.getMinutes().toString().padStart(2,0)}`;
   }
 
   function escapeHtml(unsafe) {
-    // 转义HTML特殊字符，防止恶意代码注入
     return unsafe
       .replace(/&/g, "&amp;")
       .replace(/</g, "&lt;")
       .replace(/>/g, "&gt;")
       .replace(/"/g, "&quot;")
       .replace(/'/g, "&#039;")
-      .replace(/\n/g, "<br>"); // 换行转<br>，保持消息格式
+      .replace(/\n/g, "<br>");
   }
 
   // ------------------------------
-  // 事件绑定：发送按钮+回车发送
+  // 事件绑定（简化，确保能触发）
   // ------------------------------
-  // 点击发送按钮
   sendBtn.addEventListener("click", sendUserMessage);
-  // 回车发送（Shift+Enter换行）
   userInput.addEventListener("keydown", (e) => {
     if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault(); // 阻止默认换行
+      e.preventDefault();
       sendUserMessage();
     }
   });
 
-  // ------------------------------
-  // 页面初始化：加载完成立即启动10秒自动刷新
-  // ------------------------------
+  // 页面加载启动刷新
   window.addEventListener("DOMContentLoaded", () => {
-    renderMessages(); // 初始渲染系统提示
-    startRefreshTimer(); // 启动自动刷新
+    renderMessages();
+    startRefreshTimer();
   });
 
-  // 页面关闭/刷新：停止定时器，避免无效请求
+  // 页面关闭停止刷新
   window.addEventListener("beforeunload", stopRefreshTimer);
 </script>
 
-
-
-
-
-
-
-
-<!-- 模块开头：GitHub博客专用YouTube直播播放器 -->
-<div style="width: 100%; max-width: 1000px; margin: 25px auto; border-radius: 8px; overflow: hidden; box-shadow: 0 3px 12px rgba(0,0,0,0.05); background: #ffffff;">
-  <!-- YouTube直播配置区（直接修改下方参数即可） -->
-  <script>
-    // 👇 核心配置：填写YouTube直播间ID或完整链接（二选一，ID优先，兼容性更强）
-    const youtubeLiveConfig = {
-      liveRoomId: "abc123XYZ", // YouTube直播间ID（从直播URL提取：如https://www.youtube.com/watch?v=abc123XYZ → ID为abc123XYZ）
-      liveRoomUrl: "", // YouTube直播间完整链接（示例：https://www.youtube.com/watch?v=abc123XYZ，填ID则此参数无效）
-      showChat: true, // 是否显示直播弹幕（true=显示，false=隐藏）
-      autoPlay: false // 是否自动播放（true=自动播放，false=点击播放，受浏览器自动播放策略限制）
-    };
-
-    // 自动生成YouTube官方嵌入链接（适配iframe播放规则）
-    function getValidYoutubeUrl() {
-      // 提取直播间ID（若填链接则自动解析，填ID直接使用）
-      const roomId = youtubeLiveConfig.liveRoomId || 
-                    (youtubeLiveConfig.liveRoomUrl.match(/watch\?v=([^&]+)/) || [])[1];
-      // YouTube直播嵌入链接模板，带弹幕、自动播放控制
-      return `https://www.youtube.com/embed/${roomId}?autoplay=${youtubeLiveConfig.autoPlay ? 1 : 0}&enablejsapi=1&rel=0&showinfo=0&modestbranding=1&iv_load_policy=3&cc_load_policy=0&${youtubeLiveConfig.showChat ? 'livechat' : ''}`;
-    }
-  </script>
-
-  <!-- 加载状态提示 -->
-  <div id="youtubeLoading" style="text-align: center; padding: 30px; background: #fafafa; color: #666; font-size: 15px;">
-    正在加载YouTube直播...
-  </div>
-
-  <!-- 直播播放器主体（使用YouTube官方嵌入格式，稳定兼容） -->
-  <iframe
-    id="youtubeLivePlayer"
-    src=""
-    width="100%"
-    height="600"
-    frameborder="0"
-    scrolling="no"
-    allowfullscreen="true"
-    style="display: none; border: none;"
-    title="YouTube直播间播放"
-    allow="autoplay; fullscreen; accelerometer; gyroscope"
-  ></iframe>
-</div>
-
-<script>
-  // 页面加载完成后初始化播放器
-  document.addEventListener("DOMContentLoaded", function() {
-    const liveUrl = getValidYoutubeUrl();
-    const player = document.getElementById("youtubeLivePlayer");
-    const loadingTip = document.getElementById("youtubeLoading");
-
-    // 校验配置有效性（检查是否提取到有效直播间ID）
-    if (!liveUrl.includes("embed/") || liveUrl.includes("embed/undefined")) {
-      loadingTip.textContent = "配置错误：请填写有效的YouTube直播间ID或链接！";
-      loadingTip.style.color = "#ff4d4f";
-      return;
-    }
-
-    // 加载YouTube直播（直接使用官方嵌入链接，支持弹幕和播放控制）
-    player.src = liveUrl;
-
-    // 监听播放器加载状态
-    player.onload = function() {
-      player.style.display = "block";
-      loadingTip.style.display = "none";
-    };
-
-    // 加载超时处理（适配网络延迟情况）
-    setTimeout(() => {
-      if (player.style.display === "none") {
-        loadingTip.textContent = "直播加载超时，可能是：1.直播间未开播 2.网络问题 3.需科学上网";
-        loadingTip.style.color = "#ff7a45";
-      }
-    }, 12000);
-  });
-</script>
-<!-- 模块结尾：GitHub博客专用YouTube直播播放器 -->
 
 
 
@@ -1710,249 +1608,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
-
-<!-- GitHub博客专用：Telegram Bot聊天模块（修复版） -->
-<div style="width: 100%; max-width: 600px; margin: 20px auto; padding: 20px; border-radius: 8px; background: #fff; box-shadow: 0 2px 10px rgba(0,0,0,0.05); font-family: -apple-system, BlinkMacSystemFont, sans-serif;">
-  <h3 style="margin: 0 0 15px; font-size: 17px; color: #333; display: flex; align-items: center; gap: 8px;">
-    <span style="color: #0088cc;">💬</span> 与我聊天（免登录）
-  </h3>
-
-  <!-- 聊天记录区 -->
-  <div id="chatBox" style="height: 350px; border: 1px solid #eee; border-radius: 6px; padding: 12px; overflow-y: auto; background: #fafafa; margin-bottom: 15px; display: flex; flex-direction: column; gap: 10px; scroll-behavior: smooth;"></div>
-
-  <!-- 输入区 -->
-  <div style="display: flex; flex-direction: column; gap: 10px;">
-    <input 
-      type="text" 
-      id="userName" 
-      placeholder="你的昵称（可选）" 
-      style="padding: 10px; border: 1px solid #eee; border-radius: 6px; font-size: 14px;"
-    >
-    <textarea 
-      id="userMsg" 
-      placeholder="输入消息..." 
-      style="padding: 10px; border: 1px solid #eee; border-radius: 6px; min-height: 80px; resize: none; font-size: 14px; font-family: inherit;"
-    ></textarea>
-    <button 
-      id="sendBtn" 
-      style="padding: 11px; border: none; border-radius: 6px; background: #0088cc; color: #fff; font-size: 14px; cursor: pointer; transition: background 0.2s;"
-    >发送消息</button>
-    <div id="tip" style="font-size: 12px; color: #666; text-align: center; margin-top: 5px;"></div>
-  </div>
-</div>
-
-<script>
-  // *************************
-  // 配置项（请确认这2个值正确！）
-  // *************************
-  const BOT_TOKEN = "8430958771:AAG4bkt9cR5_ZTXgeM3MeH7oSODpMjM6wJs"; // 你的Bot Token（注意开头是"bot"吗？）
-  const CHAT_ID = "6562518027"; // 你的Telegram ID（纯数字，不是用户名）
-
-  // 固定配置（无需修改）
-  const REFRESH_INTERVAL = 60000; // 缩短刷新间隔为1分钟，更快收到回复
-  const MAX_REFRESH_TIMES = 5;    // 增加刷新次数，减少漏接回复
-  let replyTimer = null;          // 刷新定时器
-  let refreshCount = 0;           // 刷新次数计数
-  let lastUpdateId = 0;           // 用Update ID替代Msg ID，避免漏消息（核心修复）
-  const chatBox = document.getElementById("chatBox");
-  const tipElem = document.getElementById("tip");
-
-  // 页面加载完成后初始化
-  document.addEventListener("DOMContentLoaded", () => {
-    // 加载欢迎消息
-    addMsgToChat("系统", "你好！消息会直接发给我，我看到后会尽快回复～", true);
-    // 绑定发送事件
-    document.getElementById("sendBtn").addEventListener("click", sendUserMsg);
-    // 绑定Enter键发送（Shift+Enter换行）
-    document.getElementById("userMsg").addEventListener("keydown", (e) => {
-      if (e.key === "Enter" && !e.shiftKey) {
-        e.preventDefault();
-        sendUserMsg();
-      }
-    });
-    // 初始拉取历史回复（修复：页面打开时就查未读消息）
-    checkBotReply();
-  });
-
-  /**
-   * 1. 添加消息到聊天框（优化样式和兼容性）
-   * @param {string} sender - 发送者名称
-   * @param {string} content - 消息内容
-   * @param {boolean} isBot - 是否是Bot/系统消息
-   */
-  function addMsgToChat(sender, content, isBot = false) {
-    if (!chatBox) return;
-    const msgDiv = document.createElement("div");
-    // 区分消息方向，优化手机端显示
-    msgDiv.style.cssText = `
-      max-width: 85%; 
-      padding: 8px 12px; 
-      border-radius: ${isBot ? "8px 8px 8px 2px" : "8px 8px 2px 8px"}; 
-      font-size: 14px; 
-      word-break: break-all; 
-      align-self: ${isBot ? "flex-start" : "flex-end"};
-      background: ${isBot ? "#e8f4f8" : "#0088cc"};
-      color: ${isBot ? "#333" : "#fff"};
-      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-    `;
-    // 转义特殊字符，避免HTML注入（修复：防止消息含<>导致样式错乱）
-    const safeSender = sender.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-    const safeContent = content.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-    // 添加时间戳，方便追溯
-    const time = new Date().toLocaleTimeString("zh-CN", { hour: "2-digit", minute: "2-digit" });
-    msgDiv.innerHTML = `
-      <span style="font-weight: 500; margin-right: 5px;">${safeSender}</span>
-      <span style="font-size: 12px; opacity: 0.7;">${time}</span>
-      <div style="margin-top: 4px;">${safeContent}</div>
-    `;
-    chatBox.appendChild(msgDiv);
-    // 自动滚动到底部（修复：确保最新消息可见）
-    chatBox.scrollTop = chatBox.scrollHeight;
-  }
-
-  /**
-   * 2. 发送用户消息（核心修复：完善错误反馈+API调用格式）
-   */
-  async function sendUserMsg() {
-    const userNameInput = document.getElementById("userName");
-    const userMsgInput = document.getElementById("userMsg");
-    const sendBtn = document.getElementById("sendBtn");
-
-    // 1. 输入验证
-    const userName = userNameInput.value.trim() || "匿名访客";
-    const userMsg = userMsgInput.value.trim();
-    if (!userMsg) {
-      showTip("❌ 消息不能为空哦～", "error");
-      return;
-    }
-
-    // 2. 锁定按钮，防止重复发送
-    sendBtn.disabled = true;
-    sendBtn.textContent = "发送中...";
-    showTip("⏳ 正在发送消息...", "info");
-
-    try {
-      // 3. 调用Telegram API发送消息（修复：API地址格式+参数完整性）
-      const apiUrl = `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`;
-      const response = await fetch(apiUrl, {
-        method: "POST",
-        headers: { 
-          "Content-Type": "application/json",
-          "Accept": "application/json" // 增加Accept头，提升兼容性
-        },
-        body: JSON.stringify({
-          chat_id: CHAT_ID,
-          text: `【${userName}】(${new Date().toLocaleString()})：\n${userMsg}`,
-          disable_web_page_preview: true,
-          parse_mode: "HTML" // 明确解析模式，避免消息格式错乱
-        }),
-        timeout: 15000 // 延长超时时间，应对网络波动
-      });
-
-      // 4. 处理API响应
-      const result = await response.json();
-      if (result.ok) {
-        // 发送成功：添加到聊天框+清空输入
-        addMsgToChat(userName, userMsg, false);
-        userMsgInput.value = "";
-        showTip("✅ 消息发送成功！我会尽快回复～", "success");
-        // 启动回复监听
-        startReplyListening();
-      } else {
-        // 明确错误原因（比如Token错误、ID错误）
-        throw new Error(`API错误：${result.description || "未知错误"}`);
-      }
-    } catch (err) {
-      // 详细错误提示，方便你排查（修复：之前只显示“发送失败”，现在给具体原因）
-      let errorMsg = "发送失败，请检查：";
-      if (err.message.includes("401")) errorMsg += "Bot Token错误";
-      else if (err.message.includes("400")) errorMsg += "Chat ID错误或Bot未与你对话过";
-      else if (err.message.includes("timeout")) errorMsg += "网络超时，请重试";
-      else errorMsg += err.message;
-      
-      showTip(errorMsg, "error");
-      console.error("发送消息错误：", err); // 控制台打印详细错误，便于你调试
-    } finally {
-      // 恢复按钮状态
-      sendBtn.disabled = false;
-      sendBtn.textContent = "发送消息";
-    }
-  }
-
-  /**
-   * 3. 启动回复监听（修复：用getUpdates正确拉取回复，避免漏消息）
-   */
-  function startReplyListening() {
-    // 清除之前的定时器，避免多个同时运行
-    if (replyTimer) clearInterval(replyTimer);
-    refreshCount = 0;
-
-    // 立即拉取一次，然后定时拉取
-    checkBotReply();
-    replyTimer = setInterval(() => {
-      checkBotReply();
-      refreshCount++;
-
-      // 达到最大次数，停止监听并提示
-      if (refreshCount >= MAX_REFRESH_TIMES) {
-        clearInterval(replyTimer);
-        addMsgToChat("系统", "回复监听已停止，若未收到回复可重新发送消息～", true);
-        showTip("⏹️ 回复监听已停止，可重新发消息触发", "info");
-      }
-    }, REFRESH_INTERVAL);
-  }
-
-  /**
-   * 4. 拉取Bot回复（核心修复：用Update ID分页，确保只拉取新消息）
-   */
-  async function checkBotReply() {
-    try {
-      // 调用getUpdates，只拉取lastUpdateId之后的新消息（避免重复拉取旧消息）
-      const apiUrl = `https://api.telegram.org/bot${BOT_TOKEN}/getUpdates?offset=${lastUpdateId + 1}&timeout=3`;
-      const response = await fetch(apiUrl, {
-        method: "GET",
-        timeout: 10000
-      });
-
-      const result = await response.json();
-      if (result.ok && result.result.length > 0) {
-        // 遍历所有新消息，筛选出Bot发给你的回复
-        result.result.forEach(update => {
-          // 更新lastUpdateId，下次从这里开始拉取
-          lastUpdateId = Math.max(lastUpdateId, update.update_id);
-
-          // 条件：是消息类型 + 发送者是Bot + 接收者是你（避免拉取其他聊天消息）
-          if (update.message && update.message.from.is_bot && update.message.chat.id.toString() === CHAT_ID.toString()) {
-            const botReply = update.message.text || "（Bot发送了非文本消息，暂不支持显示）";
-            addMsgToChat("我", botReply, true);
-            showTip("✅ 收到回复啦～", "success");
-
-            // 收到回复后，停止后续监听
-            if (replyTimer) {
-              clearInterval(replyTimer);
-              replyTimer = null;
-            }
-          }
-        });
-      }
-    } catch (err) {
-      console.error("拉取回复错误：", err);
-      // 拉取错误不提示用户，避免干扰
-    }
-  }
-
-  /**
-   * 5. 显示提示信息（优化：区分成功/错误/普通提示，颜色不同）
-   */
-  function showTip(text, type = "info") {
-    if (!tipElem) return;
-    tipElem.textContent = text;
-    // 不同类型提示用不同颜色
-    if (type === "error") tipElem.style.color = "#ff4d4f";
-    else if (type === "success") tipElem.style.color = "#00b42a";
-    else tipElem.style.color = "#666";
-  }
-</script>
 
 
 
