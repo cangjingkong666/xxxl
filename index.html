@@ -966,216 +966,192 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
-<!-- 悠哉Telegram Bot博客对话框（无后端版·持续刷新）-->
-<div class="tg-bot-chat" style="width: 100%; max-width: 600px; margin: 30px auto; padding: 20px; border-radius: 10px; box-shadow: 0 3px 15px rgba(0,0,0,0.06); background: #fff; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
-  <h3 style="margin: 0 0 20px; font-size: 18px; color: #2d3748; text-align: center;">联系悠哉的Telegram Bot</h3>
+    <!-- 👇 整合的Telegram Bot对话框模块 -->
+    <div class="tg-bot-chat" style="width: 100%; max-width: 600px; margin: 30px auto; padding: 20px; border-radius: 10px; box-shadow: 0 3px 15px rgba(0,0,0,0.06); background: #fff; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+        <h3 style="margin: 0 0 20px; font-size: 18px; color: #2d3748; text-align: center;">联系悠哉的Telegram Bot</h3>
 
-  <script>
-    const BOT_CONFIG = {
-      botToken: "8430958771:AAG4bkt9cR5_ZTXgeM3MeH7oSODpMjM6wJs", 
-      adminChatId: 6562518027, // 纯数字类型，确保API识别
-      updateOffset: 0, 
-      refreshInterval: 2000, // 2秒持续刷新，快速同步回复
-    };
+        <script>
+            const BOT_CONFIG = {
+                botToken: "8430958771:AAG4bkt9cR5_ZTXgeM3MeH7oSODpMjM6wJs", 
+                adminChatId: 6562518027, 
+                updateOffset: 0, 
+                refreshInterval: 2000, 
+            };
 
-    // 全局状态
-    let messageList = [];
-    let refreshTimer = null;
-    let isWaitingReply = false;
-  </script>
+            let messageList = [];
+            let refreshTimer = null;
+            let isWaitingReply = false;
+        </script>
 
-  <!-- 消息显示区 -->
-  <div id="messageContainer" style="height: 400px; border: 1px solid #f0f0f0; border-radius: 8px; padding: 15px; margin-bottom: 15px; overflow-y: auto; background: #fafafa; display: flex; flex-direction: column; gap: 12px;">
-    <div class="system-msg" style="text-align: center; color: #999; font-size: 14px;">
-      无需登录，消息同步Bot，2秒持续自动刷新
+        <div id="messageContainer" style="height: 400px; border: 1px solid #f0f0f0; border-radius: 8px; padding: 15px; margin-bottom: 15px; overflow-y: auto; background: #fafafa; display: flex; flex-direction: column; gap: 12px;">
+            <div class="system-msg" style="text-align: center; color: #999; font-size: 14px;">
+                无需登录，消息同步Bot，2秒持续自动刷新
+            </div>
+        </div>
+
+        <div style="display: flex; gap: 10px;">
+            <textarea 
+                id="userInput" 
+                placeholder="输入消息...（Shift+Enter换行，Enter发送）" 
+                style="flex: 1; padding: 12px; border: 1px solid #e0e0e0; border-radius: 8px; resize: none; min-height: 60px; font-size: 14px;"
+            ></textarea>
+            <button 
+                id="sendBtn" 
+                style="padding: 0 16px; border: none; border-radius: 8px; background: #0088cc; color: #fff; font-size: 14px; cursor: pointer; white-space: nowrap;"
+            >
+                发送
+            </button>
+        </div>
+        <p id="statusTip" style="margin: 8px 0 0; font-size: 12px; color: #ff4d4f; text-align: right;"></p>
     </div>
-  </div>
 
-  <!-- 发送消息区 -->
-  <div style="display: flex; gap: 10px;">
-    <textarea 
-      id="userInput" 
-      placeholder="输入消息...（Shift+Enter换行，Enter发送）" 
-      style="flex: 1; padding: 12px; border: 1px solid #e0e0e0; border-radius: 8px; resize: none; min-height: 60px; font-size: 14px;"
-    ></textarea>
-    <button 
-      id="sendBtn" 
-      style="padding: 0 16px; border: none; border-radius: 8px; background: #0088cc; color: #fff; font-size: 14px; cursor: pointer; white-space: nowrap;"
-    >
-      发送
-    </button>
-  </div>
-  <p id="statusTip" style="margin: 8px 0 0; font-size: 12px; color: #ff4d4f; text-align: right;"></p>
-</div>
+    <script>
+        const messageContainer = document.getElementById("messageContainer");
+        const userInput = document.getElementById("userInput");
+        const sendBtn = document.getElementById("sendBtn");
+        const statusTip = document.getElementById("statusTip");
 
-<!-- 核心功能JS（移除停止刷新逻辑·持续同步） -->
-<script>
-  const messageContainer = document.getElementById("messageContainer");
-  const userInput = document.getElementById("userInput");
-  const sendBtn = document.getElementById("sendBtn");
-  const statusTip = document.getElementById("statusTip");
+        function renderMessages() {
+            messageContainer.innerHTML = `
+                <div class="system-msg" style="text-align: center; color: #999; font-size: 14px; margin-bottom: 10px;">
+                    无需登录，消息同步Bot，2秒持续自动刷新
+                </div>
+            `;
 
-  // ------------------------------
-  // 功能1：渲染消息（确保样式正常）
-  // ------------------------------
-  function renderMessages() {
-    messageContainer.innerHTML = `
-      <div class="system-msg" style="text-align: center; color: #999; font-size: 14px; margin-bottom: 10px;">
-        无需登录，消息同步Bot，2秒持续自动刷新
-      </div>
-    `;
-
-    messageList.forEach(msg => {
-      const msgDiv = document.createElement("div");
-      if (msg.role === "user") {
-        msgDiv.style = "max-width:75%; margin-left:auto; padding:10px 15px; border-radius:12px 12px 0 12px; background:#0088cc; color:#fff; font-size:14px; margin-bottom:8px;";
-        msgDiv.innerHTML = `<small>你 · ${formatTime(msg.time)}</small><br>${escapeHtml(msg.content)}`;
-      } else if (msg.role === "bot") {
-        msgDiv.style = "max-width:75%; margin-right:auto; padding:10px 15px; border-radius:12px 12px 12px 0; background:#e0e0e0; color:#333; font-size:14px; margin-bottom:8px;";
-        msgDiv.innerHTML = `<small>Bot · ${formatTime(msg.time)}</small><br>${escapeHtml(msg.content)}`;
-      }
-      messageContainer.appendChild(msgDiv);
-    });
-    messageContainer.scrollTop = messageContainer.scrollHeight;
-  }
-
-  // ------------------------------
-  // 功能2：发送消息（确保API调用成功）
-  // ------------------------------
-  async function sendUserMessage() {
-    const content = userInput.value.trim();
-    if (!content) {
-      statusTip.textContent = "请输入消息内容！";
-      return;
-    }
-
-    sendBtn.disabled = true;
-    sendBtn.textContent = "发送中...";
-    statusTip.textContent = "";
-
-    try {
-      // 本地添加用户消息
-      const userMsg = { role: "user", content, time: new Date().getTime() };
-      messageList.push(userMsg);
-      renderMessages();
-      userInput.value = "";
-
-      // 用FormData传参，兼容Telegram API
-      const telegramUrl = `https://api.telegram.org/bot${BOT_CONFIG.botToken}/sendMessage`;
-      const formData = new FormData();
-      formData.append("chat_id", BOT_CONFIG.adminChatId);
-      formData.append("text", `【博客用户】\n时间：${formatTime(userMsg.time)}\n内容：${content}`);
-      formData.append("parse_mode", "HTML");
-
-      const response = await fetch(telegramUrl, {
-        method: "POST",
-        body: formData
-      });
-
-      const result = await response.json();
-      if (!result.ok) throw new Error(result.description || "发送失败");
-
-      // 发送成功：启动持续刷新，不停止
-      statusTip.textContent = "发送成功！2秒持续刷新回复...";
-      isWaitingReply = true;
-      startRefreshTimer();
-
-    } catch (err) {
-      statusTip.textContent = `发送失败：${err.message}`;
-      messageList.pop();
-      renderMessages();
-    } finally {
-      sendBtn.disabled = false;
-      sendBtn.textContent = "发送";
-    }
-  }
-
-  // ------------------------------
-  // 功能3：获取回复（核心修改：移除停止刷新逻辑）
-  // ------------------------------
-  async function fetchBotReplies() {
-    try {
-      const telegramUrl = `https://api.telegram.org/bot${BOT_CONFIG.botToken}/getUpdates?offset=${BOT_CONFIG.updateOffset + 1}&limit=10`;
-      const response = await fetch(telegramUrl);
-      const result = await response.json();
-
-      if (!result.ok || !result.result.length) return;
-
-      // 筛选管理员回复
-      const newReplies = [];
-      result.result.forEach(update => {
-        BOT_CONFIG.updateOffset = Math.max(BOT_CONFIG.updateOffset, update.update_id);
-        const msg = update.message;
-        
-        if (
-          msg?.from?.id === BOT_CONFIG.adminChatId && 
-          msg?.reply_to_message?.text?.includes("【博客用户】")
-        ) {
-          newReplies.push({
-            role: "bot",
-            content: msg.text,
-            time: msg.date * 1000
-          });
+            messageList.forEach(msg => {
+                const msgDiv = document.createElement("div");
+                if (msg.role === "user") {
+                    msgDiv.style = "max-width:75%; margin-left:auto; padding:10px 15px; border-radius:12px 12px 0 12px; background:#0088cc; color:#fff; font-size:14px; margin-bottom:8px;";
+                    msgDiv.innerHTML = `<small>你 · ${formatTime(msg.time)}</small><br>${escapeHtml(msg.content)}`;
+                } else if (msg.role === "bot") {
+                    msgDiv.style = "max-width:75%; margin-right:auto; padding:10px 15px; border-radius:12px 12px 12px 0; background:#e0e0e0; color:#333; font-size:14px; margin-bottom:8px;";
+                    msgDiv.innerHTML = `<small>Bot · ${formatTime(msg.time)}</small><br>${escapeHtml(msg.content)}`;
+                }
+                messageContainer.appendChild(msgDiv);
+            });
+            messageContainer.scrollTop = messageContainer.scrollHeight;
         }
-      });
 
-      // 有新回复：仅渲染，不停止刷新（核心修改点）
-      if (newReplies.length) {
-        messageList.push(...newReplies);
-        renderMessages();
-        isWaitingReply = false;
-        statusTip.textContent = "已同步Bot回复，持续2秒刷新..."; // 提示持续刷新
-      }
+        async function sendUserMessage() {
+            const content = userInput.value.trim();
+            if (!content) {
+                statusTip.textContent = "请输入消息内容！";
+                return;
+            }
 
-    } catch (err) {
-      console.error("获取回复失败：", err);
-      statusTip.textContent = `刷新失败：${err.message}，将继续重试...`;
-    }
-  }
+            sendBtn.disabled = true;
+            sendBtn.textContent = "发送中...";
+            statusTip.textContent = "";
 
-  // ------------------------------
-  // 工具函数（无修改）
-  // ------------------------------
-  function startRefreshTimer() {
-    stopRefreshTimer(); // 避免重复定时器
-    fetchBotReplies(); // 立即刷新一次
-    refreshTimer = setInterval(fetchBotReplies, BOT_CONFIG.refreshInterval);
-  }
+            try {
+                const userMsg = { role: "user", content, time: new Date().getTime() };
+                messageList.push(userMsg);
+                renderMessages();
+                userInput.value = "";
 
-  function stopRefreshTimer() {
-    if (refreshTimer) clearInterval(refreshTimer);
-  }
+                const telegramUrl = `https://api.telegram.org/bot${BOT_CONFIG.botToken}/sendMessage`;
+                const formData = new FormData();
+                formData.append("chat_id", BOT_CONFIG.adminChatId);
+                formData.append("text", `【博客用户】\n时间：${formatTime(userMsg.time)}\n内容：${content}`);
+                formData.append("parse_mode", "HTML");
 
-  function formatTime(timestamp) {
-    const d = new Date(timestamp);
-    return `${d.getFullYear()}-${(d.getMonth()+1).toString().padStart(2,0)}-${d.getDate().toString().padStart(2,0)} ${d.getHours().toString().padStart(2,0)}:${d.getMinutes().toString().padStart(2,0)}`;
-  }
+                const response = await fetch(telegramUrl, {
+                    method: "POST",
+                    body: formData
+                });
 
-  function escapeHtml(unsafe) {
-    return unsafe
-      .replace(/&/g, "&amp;")
-      .replace(/</g, "&lt;")
-      .replace(/>/g, "&gt;")
-      .replace(/"/g, "&quot;")
-      .replace(/'/g, "&#039;")
-      .replace(/\n/g, "<br>");
-  }
+                const result = await response.json();
+                if (!result.ok) throw new Error(result.description || "发送失败");
 
-  // ------------------------------
-  // 事件绑定
-  // ------------------------------
-  sendBtn.addEventListener("click", sendUserMessage);
-  userInput.addEventListener("keydown", (e) => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      sendUserMessage();
-    }
-  });
+                statusTip.textContent = "发送成功！2秒持续刷新回复...";
+                isWaitingReply = true;
+                startRefreshTimer();
 
-  // 页面初始化与清理
-  window.addEventListener("DOMContentLoaded", renderMessages);
-  window.addEventListener("beforeunload", stopRefreshTimer); // 页面关闭才停止
-</script>
+            } catch (err) {
+                statusTip.textContent = `发送失败：${err.message}`;
+                messageList.pop();
+                renderMessages();
+            } finally {
+                sendBtn.disabled = false;
+                sendBtn.textContent = "发送";
+            }
+        }
+
+        async function fetchBotReplies() {
+            try {
+                const telegramUrl = `https://api.telegram.org/bot${BOT_CONFIG.botToken}/getUpdates?offset=${BOT_CONFIG.updateOffset + 1}&limit=10`;
+                const response = await fetch(telegramUrl);
+                const result = await response.json();
+
+                if (!result.ok || !result.result.length) return;
+
+                const newReplies = [];
+                result.result.forEach(update => {
+                    BOT_CONFIG.updateOffset = Math.max(BOT_CONFIG.updateOffset, update.update_id);
+                    const msg = update.message;
+                    
+                    if (
+                        msg?.from?.id === BOT_CONFIG.adminChatId && 
+                        msg?.reply_to_message?.text?.includes("【博客用户】")
+                    ) {
+                        newReplies.push({
+                            role: "bot",
+                            content: msg.text,
+                            time: msg.date * 1000
+                        });
+                    }
+                });
+
+                if (newReplies.length) {
+                    messageList.push(...newReplies);
+                    renderMessages();
+                    isWaitingReply = false;
+                    statusTip.textContent = "已同步Bot回复，持续2秒刷新...";
+                }
+
+            } catch (err) {
+                console.error("获取回复失败：", err);
+                statusTip.textContent = `刷新失败：${err.message}，将继续重试...`;
+            }
+        }
+
+        function startRefreshTimer() {
+            stopRefreshTimer();
+            fetchBotReplies();
+            refreshTimer = setInterval(fetchBotReplies, BOT_CONFIG.refreshInterval);
+        }
+
+        function stopRefreshTimer() {
+            if (refreshTimer) clearInterval(refreshTimer);
+        }
+
+        function formatTime(timestamp) {
+            const d = new Date(timestamp);
+            return `${d.getFullYear()}-${(d.getMonth()+1).toString().padStart(2,0)}-${d.getDate().toString().padStart(2,0)} ${d.getHours().toString().padStart(2,0)}:${d.getMinutes().toString().padStart(2,0)}`;
+        }
+
+        function escapeHtml(unsafe) {
+            return unsafe
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;")
+                .replace(/\n/g, "<br>");
+        }
+
+        sendBtn.addEventListener("click", sendUserMessage);
+        userInput.addEventListener("keydown", (e) => {
+            if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault();
+                sendUserMessage();
+            }
+        });
+
+        window.addEventListener("DOMContentLoaded", renderMessages);
+        window.addEventListener("beforeunload", stopRefreshTimer);
+    </script>
+    <!-- 👆 Bot模块结束 -->
 
 
 
