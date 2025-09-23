@@ -711,17 +711,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
-<!-- Telegram Bot博客对话框（无后端版） -->
-<div class="tg-bot-chat" style="width: 100%; max-width: 600px; margin: 30px auto; padding: 20px; border-radius: 10px; box-shadow: 0 3px 15px rgba(0,0,0,0.06); background: #fff; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
-  <h3 style="margin: 0 0 20px; font-size: 18px; color: #2d3748; text-align: center;">联系我的Telegram Bot</h3>
 
-  <!-- 1. 核心配置：替换为你的Bot信息（必须改！） -->
+<!-- 悠哉Telegram Bot博客对话框（无后端版）-->
+<div class="tg-bot-chat" style="width: 100%; max-width: 600px; margin: 30px auto; padding: 20px; border-radius: 10px; box-shadow: 0 3px 15px rgba(0,0,0,0.06); background: #fff; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+  <h3 style="margin: 0 0 20px; font-size: 18px; color: #2d3748; text-align: center;">联系悠哉的Telegram Bot</h3>
+
+  
   <script>
     const BOT_CONFIG = {
-      botToken: "8430958771:AAG4bkt9cR5_ZTXgeM3MeH7oSODpMjM6wJs", // 你的Bot令牌（@BotFather创建后获取）
-      adminChatId: "6562518027", // 你的Telegram用户ID（@userinfobot获取）
+      botToken: "8430958771:AAG4bkt9cR5_ZTXgeM3MeH7oSODpMjM6wJs", 
+      adminChatId: "6562518027", 
       updateOffset: 0, // 消息更新偏移量（用于获取新回复）
-      refreshInterval: 60000, // 1分钟刷新一次（毫秒）
+      refreshInterval: 10000, // 10秒刷新一次（毫秒）
     };
 
     // 全局状态
@@ -962,6 +963,276 @@ document.addEventListener('DOMContentLoaded', () => {
   // 页面关闭时停止刷新
   window.addEventListener("beforeunload", stopRefreshTimer);
 </script>
+
+
+
+
+
+
+<!-- Telegram Bot博客对话框（10秒自动刷新·无后端） -->
+<div class="tg-bot-chat" style="width: 100%; max-width: 600px; margin: 30px auto; padding: 20px; border-radius: 10px; box-shadow: 0 3px 15px rgba(0,0,0,0.06); background: #fff; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+  <h3 style="margin: 0 0 20px; font-size: 18px; color: #2d3748; text-align: center;">联系我的Telegram Bot</h3>
+
+  <!-- 1. 核心配置：替换为你的Bot信息（必须改！） -->
+  <script>
+    const BOT_CONFIG = {
+      botToken: "YOUR_BOT_TOKEN", // 你的Bot令牌（@BotFather获取，如123456:ABC-DEF1234ghIkl）
+      adminChatId: "YOUR_CHAT_ID", // 你的Telegram用户ID（@userinfobot获取，纯数字）
+      updateOffset: 0, // 消息偏移量（避免重复获取旧消息）
+      refreshInterval: 10000, // 固定10秒自动刷新（10000毫秒）
+    };
+
+    // 全局状态：存储消息+控制刷新
+    let messageList = []; // 历史消息列表（用户+Bot回复）
+    let refreshTimer = null; // 刷新定时器
+    let isAutoRefresh = true; // 自动刷新开关（默认开启）
+  </script>
+
+  <!-- 2. 消息显示区（10秒自动刷新，保留历史消息） -->
+  <div id="messageContainer" style="height: 400px; border: 1px solid #f0f0f0; border-radius: 8px; padding: 15px; margin-bottom: 15px; overflow-y: auto; background: #fafafa; display: flex; flex-direction: column; gap: 12px;">
+    <div class="system-msg" style="text-align: center; color: #999; font-size: 14px;">
+      无需登录，消息每10秒自动刷新，历史对话不丢失
+    </div>
+  </div>
+
+  <!-- 3. 用户发送消息区 -->
+  <div style="display: flex; gap: 10px;">
+    <textarea 
+      id="userInput" 
+      placeholder="输入消息...（Shift+Enter换行，Enter发送）" 
+      style="flex: 1; padding: 12px; border: 1px solid #e0e0e0; border-radius: 8px; resize: none; min-height: 60px; font-size: 14px; outline: none; transition: border 0.3s;"
+      onfocus="this.style.borderColor='#0088cc'"
+      onblur="this.style.borderColor='#e0e0e0'"
+    ></textarea>
+    <button 
+      id="sendBtn" 
+      style="padding: 0 16px; border: none; border-radius: 8px; background: #0088cc; color: #fff; font-size: 14px; cursor: pointer; white-space: nowrap; transition: background 0.3s;"
+      onmouseover="this.style.background='#0066aa'"
+      onmouseout="this.style.background='#0088cc'"
+    >
+      发送
+    </button>
+  </div>
+  <p id="statusTip" style="margin: 8px 0 0; font-size: 12px; color: #666; text-align: right;">当前：每10秒自动刷新消息</p>
+</div>
+
+<!-- 4. 核心功能JS（自动刷新+消息同步+历史保留） -->
+<script>
+  // 获取DOM元素
+  const messageContainer = document.getElementById("messageContainer");
+  const userInput = document.getElementById("userInput");
+  const sendBtn = document.getElementById("sendBtn");
+  const statusTip = document.getElementById("statusTip");
+
+  // ------------------------------
+  // 功能1：渲染消息（保留历史+区分用户/Bot）
+  // ------------------------------
+  function renderMessages() {
+    // 清空消息区（保留系统提示）
+    messageContainer.innerHTML = `
+      <div class="system-msg" style="text-align: center; color: #999; font-size: 14px; margin-bottom: 10px;">
+        无需登录，消息每10秒自动刷新，历史对话不丢失
+      </div>
+    `;
+
+    // 渲染所有历史消息
+    messageList.forEach(msg => {
+      const msgCard = document.createElement("div");
+      // 用户消息：右对齐+蓝色背景
+      if (msg.role === "user") {
+        msgCard.style.cssText = "max-width: 75%; margin-left: auto; padding: 10px 15px; border-radius: 12px 12px 0 12px; background: #0088cc; color: #fff; font-size: 14px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);";
+        msgCard.innerHTML = `
+          <div style="font-size: 12px; margin-bottom: 4px; opacity: 0.9;">你 · ${formatTime(msg.time)}</div>
+          <div>${escapeHtml(msg.content)}</div>
+        `;
+      } 
+      // Bot回复：左对齐+灰色背景
+      else if (msg.role === "bot") {
+        msgCard.style.cssText = "max-width: 75%; margin-right: auto; padding: 10px 15px; border-radius: 12px 12px 12px 0; background: #e0e0e0; color: #333; font-size: 14px; box-shadow: 0 2px 4px rgba(0,0,0,0.05);";
+        msgCard.innerHTML = `
+          <div style="font-size: 12px; margin-bottom: 4px; opacity: 0.9;">Bot回复 · ${formatTime(msg.time)}</div>
+          <div>${escapeHtml(msg.content)}</div>
+        `;
+      }
+      messageContainer.appendChild(msgCard);
+    });
+
+    // 滚动到最新消息
+    messageContainer.scrollTop = messageContainer.scrollHeight;
+  }
+
+  // ------------------------------
+  // 功能2：用户发送消息到Telegram Bot
+  // ------------------------------
+  async function sendUserMessage() {
+    const content = userInput.value.trim();
+    if (!content) {
+      statusTip.textContent = "请输入消息内容！";
+      statusTip.style.color = "#ff4d4f";
+      return;
+    }
+
+    // 禁用按钮防止重复发送
+    sendBtn.disabled = true;
+    sendBtn.textContent = "发送中...";
+    sendBtn.style.background = "#999";
+    statusTip.textContent = "发送中...";
+    statusTip.style.color = "#666";
+
+    try {
+      // 1. 构造用户消息（带时间戳）
+      const userMsg = {
+        role: "user",
+        content: content,
+        time: new Date().getTime()
+      };
+      messageList.push(userMsg);
+      renderMessages(); // 实时显示用户消息
+      userInput.value = ""; // 清空输入框
+
+      // 2. 调用Telegram API转发消息到管理员（你的ChatId）
+      const telegramApiUrl = `https://api.telegram.org/bot${BOT_CONFIG.botToken}/sendMessage`;
+      const response = await fetch(telegramApiUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          chat_id: BOT_CONFIG.adminChatId,
+          text: `【博客用户消息】\n时间：${formatTime(userMsg.time)}\n内容：${content}`,
+          reply_markup: { force_reply: true } // 强制回复，方便管理员直接回应
+        })
+      });
+
+      const result = await response.json();
+      if (!result.ok) throw new Error("消息发送失败，请重试");
+
+      // 发送成功提示
+      statusTip.textContent = "发送成功！消息将随自动刷新同步回复";
+      statusTip.style.color = "#008800";
+
+    } catch (err) {
+      // 发送失败处理（移除未成功的消息）
+      statusTip.textContent = `发送失败：${err.message}`;
+      statusTip.style.color = "#ff4d4f";
+      messageList.pop();
+      renderMessages();
+    } finally {
+      // 恢复按钮状态
+      sendBtn.disabled = false;
+      sendBtn.textContent = "发送";
+      sendBtn.style.background = "#0088cc";
+    }
+  }
+
+  // ------------------------------
+  // 功能3：10秒自动刷新获取Bot回复（持续刷新不停止）
+  // ------------------------------
+  async function fetchBotReplies() {
+    try {
+      // 调用Telegram API获取最新消息更新
+      const telegramApiUrl = `https://api.telegram.org/bot${BOT_CONFIG.botToken}/getUpdates`;
+      const response = await fetch(`${telegramApiUrl}?offset=${BOT_CONFIG.updateOffset + 1}&limit=10`);
+      const result = await response.json();
+
+      if (!result.ok || !result.result.length) return; // 无新消息，直接返回
+
+      // 筛选管理员（你）对博客用户消息的回复
+      const newReplies = [];
+      result.result.forEach(update => {
+        // 更新偏移量，避免下次重复获取旧消息
+        BOT_CONFIG.updateOffset = Math.max(BOT_CONFIG.updateOffset, update.update_id);
+
+        const msg = update.message;
+        // 筛选条件：1. 是管理员发送 2. 是回复消息 3. 回复的是博客用户消息
+        if (
+          msg.from.id.toString() === BOT_CONFIG.adminChatId && 
+          msg.reply_to_message && 
+          msg.reply_to_message.text.includes("【博客用户消息】")
+        ) {
+          newReplies.push({
+            role: "bot",
+            content: msg.text,
+            time: msg.date * 1000 // Telegram时间戳（秒）转毫秒
+          });
+        }
+      });
+
+      // 有新回复：添加到列表并重新渲染
+      if (newReplies.length) {
+        messageList.push(...newReplies);
+        renderMessages();
+        statusTip.textContent = "已同步最新Bot回复（仍每10秒自动刷新）";
+        statusTip.style.color = "#008800";
+      }
+
+    } catch (err) {
+      // 刷新失败处理（10秒后自动重试）
+      console.error("获取回复失败：", err);
+      statusTip.textContent = "刷新失败，10秒后重试...";
+      statusTip.style.color = "#ff4d4f";
+    }
+  }
+
+  // ------------------------------
+  // 工具函数：启动/停止自动刷新
+  // ------------------------------
+  function startRefreshTimer() {
+    stopRefreshTimer(); // 先停止旧定时器，避免重复
+    fetchBotReplies(); // 立即刷新一次，不用等10秒
+    refreshTimer = setInterval(fetchBotReplies, BOT_CONFIG.refreshInterval);
+  }
+
+  function stopRefreshTimer() {
+    if (refreshTimer) {
+      clearInterval(refreshTimer);
+      refreshTimer = null;
+    }
+  }
+
+  // ------------------------------
+  // 辅助工具函数：时间格式化+HTML转义（防XSS）
+  // ------------------------------
+  function formatTime(timestamp) {
+    const date = new Date(timestamp);
+    // 格式化：年-月-日 时:分（补0对齐）
+    return `${date.getFullYear()}-${(date.getMonth()+1).toString().padStart(2, '0')}-${date.getDate().toString().padStart(2, '0')} ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
+  }
+
+  function escapeHtml(unsafe) {
+    // 转义HTML特殊字符，防止恶意代码注入
+    return unsafe
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#039;")
+      .replace(/\n/g, "<br>"); // 换行转<br>，保持消息格式
+  }
+
+  // ------------------------------
+  // 事件绑定：发送按钮+回车发送
+  // ------------------------------
+  // 点击发送按钮
+  sendBtn.addEventListener("click", sendUserMessage);
+  // 回车发送（Shift+Enter换行）
+  userInput.addEventListener("keydown", (e) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault(); // 阻止默认换行
+      sendUserMessage();
+    }
+  });
+
+  // ------------------------------
+  // 页面初始化：加载完成立即启动10秒自动刷新
+  // ------------------------------
+  window.addEventListener("DOMContentLoaded", () => {
+    renderMessages(); // 初始渲染系统提示
+    startRefreshTimer(); // 启动自动刷新
+  });
+
+  // 页面关闭/刷新：停止定时器，避免无效请求
+  window.addEventListener("beforeunload", stopRefreshTimer);
+</script>
+
 
 
 
