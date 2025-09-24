@@ -650,19 +650,6 @@ document.addEventListener('DOMContentLoaded', () => {
 </script>
 
 
-
-
-
-<iframe width="560" height="315" src="https://www.youtube.com/embed/m_dhMSvUCIc?si=XL20J1a0uglLhz5C" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
-
-
-
-
-
-
-
-
-
 <!-- 悠哉Telegram Bot博客对话框（无后端版·多用户群聊版）-->
 <div class="tg-bot-chat" style="width: 100%; max-width: 600px; margin: 30px auto; padding: 20px; border-radius: 10px; box-shadow: 0 3px 15px rgba(0,0,0,0.06); background: #fff; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
   <h3 style="margin: 0 0 20px; font-size: 18px; color: #2d3748; text-align: center;">悠哉Bot群聊</h3>
@@ -1163,13 +1150,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
+<!--  TVBS News新闻 Live  -->
+<iframe width="560" height="315" src="https://www.youtube.com/embed/m_dhMSvUCIc?si=XL20J1a0uglLhz5C" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+
+<!--  無綫新聞 TVB NEWS Official -->
+<iframe width="560" height="315" src="https://www.youtube.com/embed/-YFtYXuv2iA?si=VK8j-CxfwEo2hO1z" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
 
 
 	
-<!-- 文章内容 -->
+<!-- YouTube组-->
 <article>
 <h2>YouTube直播</h2>
-<p>凤凰卫视实时新闻直播</p>
+<p>CCTV中文国际</p>
 <div class="video-container">
   <div id="live-player">加载中...</div>
 </div>
@@ -1292,9 +1284,12 @@ document.addEventListener('DOMContentLoaded', () => {
 const liveChannels = [
   {id: "fN9uYWCjQaw", title: "凤凰卫视新闻直播"},
   {id: "SdzewdkJa-o", title: "CCTV中文国际"},
-  {id: "ZB9QSD_SWmM", title: "科技新闻直播"},
-  {id: "WbW00ghKFt0", title: "娱乐直播"}
+  {id: "-YFtYXuv2iA", title: "TVBS News新闻 Live"},
+  {id: "m_dhMSvUCIc", title: "無綫新聞 TVB NEWS Official"}
 ];
+
+
+
 
 // 获取直播频道展示容器
 const liveChannelFeed = document.getElementById("live-channel-feed");
